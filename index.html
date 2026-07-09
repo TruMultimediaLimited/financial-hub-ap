@@ -48,6 +48,7 @@
     .prof-btn.active{background:#10b981;color:white;box-shadow:0 0 12px rgba(16,185,129,0.4)}
     .prof-btn.inactive{background:#1e293b;color:#64748b}
     #conn-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#7f1d1d;color:#fecaca;text-align:center;font-size:13px;padding:8px}
+    #login-gate{position:fixed;inset:0;z-index:20000;background:#060d1a;display:flex;align-items:center;justify-content:center;padding:20px}
   </style>
 </head>
 <body>
@@ -55,8 +56,22 @@
 <!-- CONNECTION STATUS BANNER (shows only if Supabase fails) -->
 <div id="conn-banner">⚠️ Cloud sync issue — check console (F12) for details. Data shown may be stale or empty.</div>
 
+<!-- LOGIN GATE (shown until a Supabase Auth session exists) -->
+<div id="login-gate">
+  <form id="login-form" class="glass" style="border-radius:16px;padding:32px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:14px">
+    <div>
+      <div style="font-size:18px;font-weight:700;color:#f1f5f9">🔒 Financial Hub</div>
+      <div style="font-size:12px;color:#475569;margin-top:2px">Radone & Efty শেয়ার্ড অ্যাকসেস</div>
+    </div>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="username" required />
+    <input type="password" id="login-pass" placeholder="Password" autocomplete="current-password" required />
+    <button type="submit" class="btn-p" id="btn-login" style="justify-content:center">Login</button>
+    <div id="login-err" style="display:none;color:#f87171;font-size:12.5px"></div>
+  </form>
+</div>
+
 <!-- SIDEBAR -->
-<div id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:232px;background:rgba(6,10,20,.97);border-right:1px solid #0f172a;display:flex;flex-direction:column;padding:20px 14px;gap:4px">
+<div id="sidebar" style="display:none;position:fixed;left:0;top:0;height:100%;width:232px;background:rgba(6,10,20,.97);border-right:1px solid #0f172a;flex-direction:column;padding:20px 14px;gap:4px">
   <div style="margin-bottom:20px;padding:0 6px">
     <div style="font-size:11px;color:#475569;text-transform:uppercase;font-weight:700;margin-bottom:8px">Active Profile</div>
     <div style="display:flex;gap:6px">
@@ -69,10 +84,11 @@
     <div style="font-size:11px;color:#475569" id="sub-title">Personal Core</div>
   </div>
   <nav style="display:flex;flex-direction:column;gap:2px" id="nav-container"></nav>
+  <button id="btn-logout" style="margin-top:auto;width:100%;background:transparent;color:#64748b;border:1px solid #1e293b;border-radius:8px;padding:8px;cursor:pointer;font-size:12px">🚪 Logout</button>
 </div>
 
 <!-- MAIN CONTENT -->
-<div id="main" style="margin-left:232px;padding:28px">
+<div id="main" style="display:none;margin-left:232px;padding:28px">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
     <div><h1 style="font-size:22px;font-weight:700;color:#f1f5f9" id="page-title">Dashboard Overview</h1></div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -305,6 +321,12 @@
   let selMonth = '', modalType = 'income', editId = null;
   let charts = {};
 
+  // Escapes free-text DB fields before they're dropped into innerHTML, so a
+  // stray '<' or '"' in a name/description can't run as markup/script.
+  function esc(str) {
+    return String(str ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+  }
+
   const RADONE_CATS = {
     home_rent: '🏠 বাসা ভাড়া (Rent)',
     electricity_bill: '⚡ বিদ্যুৎ বিল',
@@ -340,8 +362,51 @@
     buildMonthSel();
     setupProfileSwitchers();
     renderSidebarMenu();
-    await refreshData();
+    setupAuthUI();
+    await initAuth();
   });
+
+  // ---- AUTH GATE: nothing in the app renders until a Supabase Auth
+  // session exists. RLS on every table requires `authenticated`, so an
+  // anon-key request with no session gets rejected by Supabase itself too —
+  // this gate is just the UI-side reflection of that server-side rule.
+  function setupAuthUI() {
+    document.getElementById('login-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-pass').value;
+      const errEl = document.getElementById('login-err');
+      const btn = document.getElementById('btn-login');
+      errEl.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Logging in...';
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = 'Login';
+      if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+      await onAuthed();
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      document.getElementById('sidebar').style.display = 'none';
+      document.getElementById('main').style.display = 'none';
+      document.getElementById('login-gate').style.display = 'flex';
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-pass').value = '';
+    });
+  }
+
+  async function initAuth() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) { await onAuthed(); return; }
+    document.getElementById('login-gate').style.display = 'flex';
+  }
+
+  async function onAuthed() {
+    document.getElementById('login-gate').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main').style.display = 'block';
+    await refreshData();
+  }
 
   function setupProfileSwitchers() {
     document.getElementById('prof-radone').addEventListener('click', () => switchProfile('radone'));
@@ -446,13 +511,15 @@
     const mInc = pInc.filter(i => i.date && i.date.startsWith(selMonth));
     const mExp = pExp.filter(e => e.date && e.date.startsWith(selMonth));
 
-    const getAmtBDT = (x) => {
-      let val = parseFloat(x.amount || 0);
+    const isUSD = (x) => {
       let noteTxt = (x.notes || '').toLowerCase();
       let catTxt = (x.category_group || '').toLowerCase();
-      if(noteTxt.includes('usd') || catTxt.includes('usd')) val *= 118;
-      return val;
+      return noteTxt.includes('usd') || catTxt.includes('usd');
     };
+
+    // USD entries live in their own USD wallets/KPIs and are never converted
+    // into BDT, so they don't contribute to the BDT-denominated totals below.
+    const getAmtBDT = (x) => isUSD(x) ? 0 : parseFloat(x.amount || 0);
 
     const tInc = mInc.reduce((sum, i) => sum + getAmtBDT(i), 0);
     const tExp = mExp.reduce((sum, e) => sum + getAmtBDT(e), 0);
@@ -492,7 +559,7 @@
       return `
         <div class="cc-bg">
           <div style="display:flex; justify-content:space-between; align-items:flex-start">
-            <h4 class="font-bold text-blue-400">${c.card_name}</h4><div class="chip"></div>
+            <h4 class="font-bold text-blue-400">${esc(c.card_name)}</h4><div class="chip"></div>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px" class="text-xs">
             <div><span class="text-gray-500">Total Limit</span><p class="amount font-semibold">৳${total.toLocaleString()}</p></div>
@@ -501,7 +568,7 @@
             <div><span class="text-amber-400">Month's Bill</span><p class="amount text-amber-300">৳${bill.toLocaleString()}</p></div>
           </div>
           <div class="text-xs border-t border-gray-800 pt-2 mt-2 flex justify-between items-center">
-            <span>📅 Due Date: <b>${c.due_date||'—'}</b></span>
+            <span>📅 Due Date: <b>${esc(c.due_date)||'—'}</b></span>
             <div style="display:flex; gap:4px">
               <button class="btn-e" style="padding:2px 6px" onclick="openEditModal('card','${c.id}')">⚙ Config</button>
               <button class="btn-d" style="padding:2px 6px" onclick="deleteMasterRecord('credit_card_status','${c.id}')">✕</button>
@@ -513,11 +580,11 @@
     if(isRadone) {
       document.getElementById('dash-cc-grid').innerHTML = cards.map(buildCardHTML).join('');
       document.getElementById('main-cc-grid').innerHTML = cards.map(buildCardHTML).join('');
-      document.getElementById('pay-cc-select').innerHTML = '<option value="">Select Card to Pay</option>' + cards.map(c => `<option value="${c.id}">${c.card_name} (Due: ৳${c.current_due})</option>`).join('');
+      document.getElementById('pay-cc-select').innerHTML = '<option value="">Select Card to Pay</option>' + cards.map(c => `<option value="${c.id}">${esc(c.card_name)} (Due: ৳${c.current_due})</option>`).join('');
     }
 
-    document.getElementById('recent-inc-list').innerHTML = mInc.slice(0,4).map(i => `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${i.source}</span><span class="text-emerald-400">${(i.notes||'').includes('USD') ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</span></div>`).join('') || '<div style="color:#475569;font-size:13px">No entries yet</div>';
-    document.getElementById('recent-exp-list').innerHTML = mExp.slice(0,4).map(e => `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${e.description}</span><span class="text-red-400">৳${parseFloat(e.amount||0).toLocaleString()}</span></div>`).join('') || '<div style="color:#475569;font-size:13px">No entries yet</div>';
+    document.getElementById('recent-inc-list').innerHTML = mInc.slice(0,4).map(i => `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${esc(i.source)}</span><span class="text-emerald-400">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</span></div>`).join('') || '<div style="color:#475569;font-size:13px">No entries yet</div>';
+    document.getElementById('recent-exp-list').innerHTML = mExp.slice(0,4).map(e => `<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${esc(e.description)}</span><span class="text-red-400">৳${parseFloat(e.amount||0).toLocaleString()}</span></div>`).join('') || '<div style="color:#475569;font-size:13px">No entries yet</div>';
 
     const activeCats = isRadone ? RADONE_CATS : EFTY_CATS;
 
@@ -530,21 +597,21 @@
 
       return `<tr>
         <td>${i.date}</td>
-        <td><b>${i.source}</b></td>
-        <td><span class="badge ${cBadge}">${comp}</span></td>
-        <td><span class="text-amber-400 font-medium">${i.project_tag || '—'}</span></td>
-        <td><span class="badge bg-slate-800">${i.notes}</span></td>
-        <td style="text-align:right" class="amount text-emerald-400">${(i.notes||'').includes('USD') ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</td>
+        <td><b>${esc(i.source)}</b></td>
+        <td><span class="badge ${cBadge}">${esc(comp)}</span></td>
+        <td><span class="text-amber-400 font-medium">${esc(i.project_tag) || '—'}</span></td>
+        <td><span class="badge bg-slate-800">${esc(i.notes)}</span></td>
+        <td style="text-align:right" class="amount text-emerald-400">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</td>
         <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('income','${i.id}')">✍️ Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_income','${i.id}')">✕</button></td>
       </tr>`
     }).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No income records for this month</td></tr>';
 
     document.getElementById('exp-tbody').innerHTML = mExp.map(e => `<tr>
       <td>${e.date}</td>
-      <td><b>${e.description}</b></td>
-      <td><span class="text-amber-400 font-medium">${e.project_tag || '—'}</span></td>
-      <td><span class="badge bg-gray-900">${activeCats[e.category]||e.category}</span></td>
-      <td><span class="text-xs text-amber-500">${e.payment_method}</span></td>
+      <td><b>${esc(e.description)}</b></td>
+      <td><span class="text-amber-400 font-medium">${esc(e.project_tag) || '—'}</span></td>
+      <td><span class="badge bg-gray-900">${esc(activeCats[e.category]||e.category)}</span></td>
+      <td><span class="text-xs text-amber-500">${esc(e.payment_method)}</span></td>
       <td style="text-align:right" class="amount text-red-400">৳${parseFloat(e.amount||0).toLocaleString()}</td>
       <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('expense','${e.id}')">✍️ Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_expenses','${e.id}')">✕</button></td>
     </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No expense records for this month</td></tr>';
@@ -587,7 +654,10 @@
     });
 
     pExp.forEach(e => {
-      let a = parseFloat(e.amount||0); if(e.payment_method === 'Credit Card') return;
+      let a = parseFloat(e.amount||0);
+      // Expenses paid on a real credit card affect that card's Due, not a
+      // cash/bank wallet — skip them here.
+      if(cards.some(c => c.card_name === e.payment_method)) return;
       let m = e.payment_method || '';
 
       if(currentProfile === 'efty') {
@@ -606,6 +676,7 @@
         else if(m === '🏛️ BRAC Bank (Company)') bracComp -= a;
         else if(m === '🏛️ DBBL Bank (Company)') dbblComp -= a;
         else if(m === '💵 Cash Hand') cash -= a;
+        else if(m === '🇺🇸 USD Wallet') usd -= a;
       }
     });
 
@@ -681,11 +752,11 @@
       return `
         <tr>
           <td>${d.date}</td>
-          <td><b>${d.person_name}</b></td>
-          <td><span class="badge ${d.debt_type==='Receivable'?'bg-emerald-950 text-emerald-400':'bg-red-950 text-red-400'}">${d.debt_type}</span></td>
+          <td><b>${esc(d.person_name)}</b></td>
+          <td><span class="badge ${d.debt_type==='Receivable'?'bg-emerald-950 text-emerald-400':'bg-red-950 text-red-400'}">${esc(d.debt_type)}</span></td>
           <td class="amount">${sym}${parseFloat(d.total_amount||0).toLocaleString()}</td>
           <td class="amount text-right font-bold ${d.debt_type==='Receivable'?'text-emerald-400':'text-amber-400'}">${sym}${parseFloat(d.remaining_amount||0).toLocaleString()}</td>
-          <td><span class="badge bg-slate-900">${d.currency} Matrix</span></td>
+          <td><span class="badge bg-slate-900">${esc(d.currency)} Matrix</span></td>
           <td style="text-align:center; display:flex; gap:4px; justify-content:center">
             <input type="number" id="pay-amt-${d.id}" placeholder="${sym}" style="width:50px;padding:2px!important" />
             <button class="btn-p" style="padding:4px 6px;font-size:12px" onclick="processRepayment('${d.id}')">Pay</button>
@@ -699,8 +770,8 @@
         if(parseFloat(c.current_due || 0) > 0) {
           tbodyHTML += `
             <tr style="background: rgba(37, 99, 235, 0.04); border-left: 2px solid #2563eb;">
-              <td>📅 ${c.due_date || '—'}</td>
-              <td><b>💳 ${c.card_name}</b></td>
+              <td>📅 ${esc(c.due_date) || '—'}</td>
+              <td><b>💳 ${esc(c.card_name)}</b></td>
               <td><span class="badge bg-blue-950 text-blue-400">CC Outstanding</span></td>
               <td class="amount">৳${parseFloat(c.total_limit||0).toLocaleString()}</td>
               <td class="amount text-right font-bold text-red-400">৳${parseFloat(c.current_due||0).toLocaleString()}</td>
@@ -726,8 +797,8 @@
       const remaining = Math.max(0, totalMonths - paidMonths) * monthly;
       const done = paidMonths >= totalMonths;
       return `<tr>
-        <td><b>${e.item_name}</b></td>
-        <td><span class="badge bg-blue-950 text-blue-400">${e.card_name}</span></td>
+        <td><b>${esc(e.item_name)}</b></td>
+        <td><span class="badge bg-blue-950 text-blue-400">${esc(e.card_name)}</span></td>
         <td style="text-align:right" class="amount text-amber-300">৳${monthly.toLocaleString()}</td>
         <td>${paidMonths}/${totalMonths} মাস</td>
         <td style="text-align:right" class="amount ${done?'text-emerald-400':'text-red-400'}">৳${remaining.toLocaleString()}</td>
@@ -765,8 +836,10 @@
 
       const card = cards.find(c => c.id === emi.card_id);
       if (card) {
-        const newDue = parseFloat(card.current_due||0) + parseFloat(emi.monthly_installment||0);
-        const newBill = parseFloat(card.current_bill||0) + parseFloat(emi.monthly_installment||0);
+        const { data: freshCard, error: freshErr } = await sb.from('credit_card_status').select('current_due,current_bill').eq('id', card.id).single();
+        if (freshErr) { handleErr('read current card state', freshErr); return; }
+        const newDue = parseFloat(freshCard.current_due||0) + parseFloat(emi.monthly_installment||0);
+        const newBill = parseFloat(freshCard.current_bill||0) + parseFloat(emi.monthly_installment||0);
         const { error: e3 } = await sb.from('credit_card_status').update({ current_due: newDue, current_bill: newBill }).eq('id', card.id);
         if (e3) { handleErr('update card from emi', e3); return; }
       }
@@ -794,7 +867,9 @@
         const { error } = await sb.from('hub_income').insert([{ date: today, source: `${debt.person_name} Loan Return`, amount: amt, notes: route, category_group: 'Personal', profile_owner: currentProfile }]);
         if (error) { handleErr('log repayment income', error); return; }
       } else {
-        const { error } = await sb.from('hub_expenses').insert([{ date: today, description: `Repaid to ${debt.person_name}`, category: 'misc', amount: debt.currency === 'USD' ? amt * 118 : amt, payment_method: debt.currency === 'USD' ? '🏛️ City Bank (Radone)' : route, profile_owner: currentProfile }]);
+        // No currency conversion — log the repayment in the debt's own
+        // currency and route it through the matching wallet.
+        const { error } = await sb.from('hub_expenses').insert([{ date: today, description: `Repaid to ${debt.person_name}`, category: 'misc', amount: amt, payment_method: route, profile_owner: currentProfile }]);
         if (error) { handleErr('log repayment expense', error); return; }
       }
       await refreshData(); showToast('Repayment Settled!');
@@ -814,7 +889,9 @@
           if (matchedCard) {
             const alsoRevert = confirm(`এই এক্সপেন্সটা "${matchedCard.card_name}" কার্ড দিয়ে করা হয়েছিল।\n\nডিলিট করার সাথে সাথে কার্ডের Due থেকেও ৳${parseFloat(exp.amount||0).toLocaleString()} বিয়োগ করে দিতে চান?`);
             if (alsoRevert) {
-              const newDue = Math.max(0, parseFloat(matchedCard.current_due||0) - parseFloat(exp.amount||0));
+              const { data: freshCard, error: freshErr } = await sb.from('credit_card_status').select('current_due').eq('id', matchedCard.id).single();
+              if (freshErr) { handleErr('read current card state', freshErr); return; }
+              const newDue = Math.max(0, parseFloat(freshCard.current_due||0) - parseFloat(exp.amount||0));
               const { error: ccErr } = await sb.from('credit_card_status').update({ current_due: newDue }).eq('id', matchedCard.id);
               if (ccErr) { handleErr('revert card due', ccErr); return; }
             }
@@ -911,8 +988,8 @@
 
       fBody.innerHTML = `
         <input type="date" id="f-date" value="${d}" />
-        <input type="text" id="f-main" placeholder="Source / Client (e.g., Space Studio)" value="${item?item.source:''}" />
-        <input type="text" id="f-project" placeholder="Project / Tag Name" value="${item?(item.project_tag||''):''}" />
+        <input type="text" id="f-main" placeholder="Source / Client (e.g., Space Studio)" value="${item?esc(item.source):''}" />
+        <input type="text" id="f-project" placeholder="Project / Tag Name" value="${item?esc(item.project_tag||''):''}" />
         ${groupSelectHTML}
         ${walletSelectHTML}
         <input type="number" id="f-amt" placeholder="Amount" value="${item?item.amount:''}" />
@@ -930,7 +1007,8 @@
         { value: '🏛️ DBBL Bank (Radone)', label: '🏛️ DBBL Bank (Radone)' },
         { value: '🏛️ City Bank (Company)', label: '🏛️ City Bank (Company)' },
         { value: '🏛️ BRAC Bank (Company)', label: '🏛️ BRAC Bank (Company)' },
-        { value: '🏛️ DBBL Bank (Company)', label: '🏛️ DBBL Bank (Company)' }
+        { value: '🏛️ DBBL Bank (Company)', label: '🏛️ DBBL Bank (Company)' },
+        { value: '🇺🇸 USD Wallet', label: '🇺🇸 USD Wallet (no conversion)' }
       ];
       const eftyMethods = [
         { value: '💵 Cash Hand (Personal)', label: '💵 Cash Hand (Personal)' },
@@ -941,19 +1019,19 @@
         { value: '🏛️ Efty Bank Account', label: '🏛️ Efty Bank Account' }
       ];
       const methods = isRadone ? [...radoneBase, ...cardOptions] : eftyMethods;
-      let methodSelectHTML = `<select id="f-method">${methods.map(m=>`<option value="${m.value}" ${item&&item.payment_method===m.value?'selected':''}>${m.label}</option>`).join('')}</select>`;
+      let methodSelectHTML = `<select id="f-method">${methods.map(m=>`<option value="${esc(m.value)}" ${item&&item.payment_method===m.value?'selected':''}>${esc(m.label)}</option>`).join('')}</select>`;
 
       fBody.innerHTML = `
         <input type="date" id="f-date" value="${d}" />
-        <input type="text" id="f-main" placeholder="Description Item" value="${item?item.description:''}" />
-        <input type="text" id="f-project" placeholder="Project Name (Optional)" value="${item?(item.project_tag||''):''}" />
+        <input type="text" id="f-main" placeholder="Description Item" value="${item?esc(item.description):''}" />
+        <input type="text" id="f-project" placeholder="Project Name (Optional)" value="${item?esc(item.project_tag||''):''}" />
         <select id="f-cat">${Object.keys(cats).map(k=>`<option value="${k}" ${item&&item.category===k?'selected':''}>${cats[k]}</option>`).join('')}</select>
         ${methodSelectHTML}
         <input type="number" id="f-amt" placeholder="Amount (৳)" value="${item?item.amount:''}" />
         <button class="btn-p" id="btn-submit">Save Expense</button>`;
     } else if(modalType === 'card') {
       fBody.innerHTML = `
-        <input type="text" id="f-main" placeholder="Card Issuer Name" value="${item?item.card_name:''}" />
+        <input type="text" id="f-main" placeholder="Card Issuer Name" value="${item?esc(item.card_name):''}" />
         <input type="number" id="f-limit" placeholder="Total Limit" value="${item?item.total_limit:''}" />
         <input type="number" id="f-amt" placeholder="Current Due" value="${item?item.current_due:''}" />
         <input type="number" id="f-bill" placeholder="Statement Bill" value="${item?item.current_bill:''}" />
@@ -967,7 +1045,7 @@
       }
       fBody.innerHTML = `
         <input type="text" id="f-main" placeholder="আইটেমের নাম (যেমন: iPhone 15)" />
-        <select id="f-emi-card">${cards.map(c=>`<option value="${c.id}">${c.card_name}</option>`).join('')}</select>
+        <select id="f-emi-card">${cards.map(c=>`<option value="${c.id}">${esc(c.card_name)}</option>`).join('')}</select>
         <input type="number" id="f-amt" placeholder="মোট এমাউন্ট (৳)" />
         <input type="number" id="f-months" placeholder="কত মাসের কিস্তি (যেমন: 12)" />
         <button class="btn-s" id="btn-submit">Save EMI Plan</button>`;
@@ -995,7 +1073,7 @@
       if(modalType === 'income') {
         const date = document.getElementById('f-date').value;
         const amount = parseFloat(document.getElementById('f-amt').value);
-        if (!date || isNaN(amount)) { showToast('Please fill date & amount correctly', true); return; }
+        if (!date || isNaN(amount) || amount <= 0) { showToast('Please fill date & a valid amount (> 0)', true); return; }
         const gEl = document.getElementById('f-group'), group = gEl.options[gEl.selectedIndex].value;
         const nEl = document.getElementById('f-notes'), notes = nEl.options[nEl.selectedIndex].value;
         const project = document.getElementById('f-project').value.trim();
@@ -1009,7 +1087,7 @@
       } else if(modalType === 'expense') {
         const date = document.getElementById('f-date').value;
         const amount = parseFloat(document.getElementById('f-amt').value);
-        if (!date || isNaN(amount)) { showToast('Please fill date & amount correctly', true); return; }
+        if (!date || isNaN(amount) || amount <= 0) { showToast('Please fill date & a valid amount (> 0)', true); return; }
         const cEl = document.getElementById('f-cat'), category = cEl.options[cEl.selectedIndex].value;
         const mEl = document.getElementById('f-method'), payment_method = mEl.options[mEl.selectedIndex].value;
         const project = document.getElementById('f-project').value.trim();
@@ -1027,8 +1105,13 @@
         if (!editId) {
           const matchedCard = cards.find(c => c.card_name === payment_method);
           if (matchedCard) {
-            const newDue = parseFloat(matchedCard.current_due||0) + amount;
-            const newBill = parseFloat(matchedCard.current_bill||0) + amount;
+            // Re-read the row right before writing instead of trusting the
+            // in-memory cache, to shrink the window for a lost update if
+            // another change hit this card between page load and this save.
+            const { data: freshCard, error: freshErr } = await sb.from('credit_card_status').select('current_due,current_bill').eq('id', matchedCard.id).single();
+            if (freshErr) { handleErr('read current card state', freshErr); return; }
+            const newDue = parseFloat(freshCard.current_due||0) + amount;
+            const newBill = parseFloat(freshCard.current_bill||0) + amount;
             const { error: ccErr } = await sb.from('credit_card_status').update({ current_due: newDue, current_bill: newBill }).eq('id', matchedCard.id);
             if (ccErr) { handleErr('update card due from purchase', ccErr); return; }
           }
@@ -1039,7 +1122,7 @@
         const current_due = parseFloat(document.getElementById('f-amt').value);
         const current_bill = parseFloat(document.getElementById('f-bill').value);
         const cc_due_date = document.getElementById('f-cc-date').value;
-        if (isNaN(total_limit) || isNaN(current_due) || isNaN(current_bill)) { showToast('Please fill all card fields', true); return; }
+        if (isNaN(total_limit) || total_limit <= 0 || isNaN(current_due) || current_due < 0 || isNaN(current_bill) || current_bill < 0) { showToast('Please fill all card fields with valid amounts', true); return; }
 
         const payload = { card_name: main, total_limit, current_due, current_bill, due_date: cc_due_date };
         const { error } = editId
@@ -1052,7 +1135,7 @@
         const card = cards.find(c => c.id === cardSel.value);
         const total_amount = parseFloat(document.getElementById('f-amt').value);
         const total_months = parseInt(document.getElementById('f-months').value);
-        if (!card || isNaN(total_amount) || !total_months || total_months < 1) { showToast('সব ফিল্ড ঠিকভাবে পূরণ করুন', true); return; }
+        if (!card || isNaN(total_amount) || total_amount <= 0 || !total_months || total_months < 1) { showToast('সব ফিল্ড ঠিকভাবে পূরণ করুন', true); return; }
         const monthly_installment = Math.round((total_amount / total_months) * 100) / 100;
         const { error } = await sb.from('hub_emis').insert([{
           item_name: main, card_id: card.id, card_name: card.card_name,
@@ -1065,7 +1148,7 @@
         const date = new Date().toISOString().split('T')[0];
         const debt_type = document.getElementById('f-dtype').value;
         const total_amount = parseFloat(document.getElementById('f-amt').value);
-        if (isNaN(total_amount)) { showToast('Please enter an amount', true); return; }
+        if (isNaN(total_amount) || total_amount <= 0) { showToast('Please enter a valid amount (> 0)', true); return; }
         const currency = document.getElementById('f-currency') ? document.getElementById('f-currency').value : 'BDT';
         const { error } = await sb.from('hub_debts').insert([{ date, person_name: main, debt_type, total_amount, remaining_amount: total_amount, currency, profile_owner: currentProfile }]);
         if (error) { handleErr('save debt', error); return; }
@@ -1087,11 +1170,13 @@
     const cardId = document.getElementById('pay-cc-select').value;
     const amt = parseFloat(document.getElementById('pay-cc-amt').value);
     const payMethod = document.getElementById('pay-cc-method').value;
-    if(!cardId || !amt) { showToast('Select a card and enter an amount', true); return; }
+    if(!cardId || !amt || amt <= 0) { showToast('Select a card and enter a valid amount (> 0)', true); return; }
     const card = cards.find(c => c.id === cardId); if (!card) return;
 
     try {
-      const { error: e1 } = await sb.from('credit_card_status').update({ current_due: Math.max(0, parseFloat(card.current_due||0) - amt), current_bill: 0 }).eq('id', cardId);
+      const { data: freshCard, error: freshErr } = await sb.from('credit_card_status').select('current_due').eq('id', cardId).single();
+      if (freshErr) { handleErr('read current card state', freshErr); return; }
+      const { error: e1 } = await sb.from('credit_card_status').update({ current_due: Math.max(0, parseFloat(freshCard.current_due||0) - amt), current_bill: 0 }).eq('id', cardId);
       if (e1) { handleErr('update card due', e1); return; }
 
       const { error: e2 } = await sb.from('hub_expenses').insert([{ date: new Date().toISOString().split('T')[0], description: `${card.card_name} Bill Paid`, category: 'misc', amount: amt, payment_method: payMethod, profile_owner: 'radone' }]);
@@ -1125,7 +1210,12 @@ if ('serviceWorker' in navigator) {
       });
       
       self.addEventListener('fetch', event => {
-        // Try network first, fall back to cache
+        // Only cache same-origin requests (the app shell). Cross-origin
+        // calls — Supabase API responses carrying financial data — go
+        // straight to the network with no cache fallback and are never
+        // written to the cache.
+        if (new URL(event.request.url).origin !== self.location.origin) return;
+
         event.respondWith(
           fetch(event.request).catch(() => {
             return caches.match(event.request) || caches.match('/');
