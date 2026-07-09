@@ -1014,30 +1014,37 @@
     const d = item ? item.date : new Date().toISOString().split('T')[0];
 
     if(modalType === 'income') {
-      let groupSelectHTML = isRadone ? `
-        <select id="f-group">
-          <option value="Personal" ${item&&item.category_group==='Personal'?'selected':''}>👤 Personal / Other Income</option>
-          <option value="Tru Multimedia Ltd." ${item&&item.category_group==='Tru Multimedia Ltd.'?'selected':''}>🏢 Tru Multimedia Ltd.</option>
-          <option value="Truphoto Studio" ${item&&item.category_group==='Truphoto Studio'?'selected':''}>📸 Truphoto Studio</option>
-          <option value="4R Studio" ${item&&item.category_group==='4R Studio'?'selected':''}>🎥 4R Studio</option>
-        </select>` : `
-        <select id="f-group">
-          <option value="Kurti Paradise Sale">🏬 Kurti Paradise Shop Sale</option>
-        </select>`;
-
       const radoneWallets = ['💵 Cash Hand','📱 bKash Wallet','🏛️ City Bank (Radone)','🏛️ BRAC Bank (Radone)','🏛️ DBBL Bank (Radone)','🏛️ City Bank (Company)','🏛️ BRAC Bank (Company)','🏛️ DBBL Bank (Company)','🇺🇸 USD Wallet'];
       const eftyWallets = ['💵 Cash Hand (Personal)','🏬 Cash Hand (Shop)','📱 bKash (Personal)','📱 bKash (Shop)','💸 Nagad (Shop)','🏛️ Efty Bank Account'];
       const wallets = isRadone ? radoneWallets : eftyWallets;
       let walletSelectHTML = `<select id="f-notes">${wallets.map(w=>`<option value="${w}" ${item&&item.notes===w?'selected':''}>${w}</option>`).join('')}</select>`;
 
-      fBody.innerHTML = `
-        <input type="date" id="f-date" value="${d}" />
-        <input type="text" id="f-main" placeholder="Source / Client (e.g., Space Studio)" value="${item?esc(item.source):''}" />
-        <input type="text" id="f-project" placeholder="Project / Tag Name" value="${item?esc(item.project_tag||''):''}" />
-        ${groupSelectHTML}
-        ${walletSelectHTML}
-        <input type="number" id="f-amt" placeholder="Amount" value="${item?item.amount:''}" />
-        <button class="btn-s" id="btn-submit">Save Income</button>`;
+      if (isRadone) {
+        let groupSelectHTML = `
+          <select id="f-group">
+            <option value="Personal" ${item&&item.category_group==='Personal'?'selected':''}>👤 Personal / Other Income</option>
+            <option value="Tru Multimedia Ltd." ${item&&item.category_group==='Tru Multimedia Ltd.'?'selected':''}>🏢 Tru Multimedia Ltd.</option>
+            <option value="Truphoto Studio" ${item&&item.category_group==='Truphoto Studio'?'selected':''}>📸 Truphoto Studio</option>
+            <option value="4R Studio" ${item&&item.category_group==='4R Studio'?'selected':''}>🎥 4R Studio</option>
+          </select>`;
+
+        fBody.innerHTML = `
+          <input type="date" id="f-date" value="${d}" />
+          <input type="text" id="f-main" placeholder="Source / Client (e.g., Space Studio)" value="${item?esc(item.source):''}" />
+          <input type="text" id="f-project" placeholder="Project / Tag Name" value="${item?esc(item.project_tag||''):''}" />
+          ${groupSelectHTML}
+          ${walletSelectHTML}
+          <input type="number" id="f-amt" placeholder="Amount" value="${item?item.amount:''}" />
+          <button class="btn-s" id="btn-submit">Save Income</button>`;
+      } else {
+        // Simplified daily shop-sale entry for Efty — just date, wallet
+        // route, and the total amount. No client/project fields to fill in.
+        fBody.innerHTML = `
+          <input type="date" id="f-date" value="${d}" />
+          ${walletSelectHTML}
+          <input type="number" id="f-amt" placeholder="Total Sale Amount (৳)" value="${item?item.amount:''}" />
+          <button class="btn-s" id="btn-submit">Save Sale</button>`;
+      }
     } else if(modalType === 'expense') {
       // Real credit card names are pulled in live from the Credit Cards pane.
       // Picking one here means this purchase will also bump that card's
@@ -1105,9 +1112,11 @@
   }
 
   async function submitForm() {
+    // Efty's simplified shop-sale form has no #f-main/#f-project/#f-group —
+    // those only exist for Radone income and the other modal types.
     const mainEl = document.getElementById('f-main');
-    const main = mainEl.value.trim();
-    if(!main) { showToast('Please fill in the required field', true); return; }
+    const main = mainEl ? mainEl.value.trim() : 'Shop Sale';
+    if (mainEl && !main) { showToast('Please fill in the required field', true); return; }
 
     const submitBtn = document.getElementById('btn-submit');
     submitBtn.disabled = true;
@@ -1118,9 +1127,11 @@
         const date = document.getElementById('f-date').value;
         const amount = parseFloat(document.getElementById('f-amt').value);
         if (!date || isNaN(amount) || amount <= 0) { showToast('Please fill date & a valid amount (> 0)', true); return; }
-        const gEl = document.getElementById('f-group'), group = gEl.options[gEl.selectedIndex].value;
+        const gEl = document.getElementById('f-group');
+        const group = gEl ? gEl.options[gEl.selectedIndex].value : 'Kurti Paradise Sale';
         const nEl = document.getElementById('f-notes'), notes = nEl.options[nEl.selectedIndex].value;
-        const project = document.getElementById('f-project').value.trim();
+        const pEl = document.getElementById('f-project');
+        const project = pEl ? pEl.value.trim() : '';
 
         const payload = { date, source: main, amount, notes, category_group: group, project_tag: project, profile_owner: currentProfile };
         const { error } = editId
