@@ -48,6 +48,7 @@
     .prof-btn.active{background:#10b981;color:white;box-shadow:0 0 12px rgba(16,185,129,0.4)}
     .prof-btn.inactive{background:#1e293b;color:#64748b}
     #conn-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#7f1d1d;color:#fecaca;text-align:center;font-size:13px;padding:8px}
+    #login-gate{position:fixed;inset:0;z-index:20000;background:#060d1a;display:flex;align-items:center;justify-content:center;padding:20px}
   </style>
 </head>
 <body>
@@ -55,8 +56,22 @@
 <!-- CONNECTION STATUS BANNER (shows only if Supabase fails) -->
 <div id="conn-banner">⚠️ Cloud sync issue — check console (F12) for details. Data shown may be stale or empty.</div>
 
+<!-- LOGIN GATE (shown until a Supabase Auth session exists) -->
+<div id="login-gate">
+  <form id="login-form" class="glass" style="border-radius:16px;padding:32px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:14px">
+    <div>
+      <div style="font-size:18px;font-weight:700;color:#f1f5f9">🔒 Financial Hub</div>
+      <div style="font-size:12px;color:#475569;margin-top:2px">Radone & Efty শেয়ার্ড অ্যাকসেস</div>
+    </div>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="username" required />
+    <input type="password" id="login-pass" placeholder="Password" autocomplete="current-password" required />
+    <button type="submit" class="btn-p" id="btn-login" style="justify-content:center">Login</button>
+    <div id="login-err" style="display:none;color:#f87171;font-size:12.5px"></div>
+  </form>
+</div>
+
 <!-- SIDEBAR -->
-<div id="sidebar" style="position:fixed;left:0;top:0;height:100%;width:232px;background:rgba(6,10,20,.97);border-right:1px solid #0f172a;display:flex;flex-direction:column;padding:20px 14px;gap:4px">
+<div id="sidebar" style="display:none;position:fixed;left:0;top:0;height:100%;width:232px;background:rgba(6,10,20,.97);border-right:1px solid #0f172a;flex-direction:column;padding:20px 14px;gap:4px">
   <div style="margin-bottom:20px;padding:0 6px">
     <div style="font-size:11px;color:#475569;text-transform:uppercase;font-weight:700;margin-bottom:8px">Active Profile</div>
     <div style="display:flex;gap:6px">
@@ -69,10 +84,11 @@
     <div style="font-size:11px;color:#475569" id="sub-title">Personal Core</div>
   </div>
   <nav style="display:flex;flex-direction:column;gap:2px" id="nav-container"></nav>
+  <button id="btn-logout" style="margin-top:auto;width:100%;background:transparent;color:#64748b;border:1px solid #1e293b;border-radius:8px;padding:8px;cursor:pointer;font-size:12px">🚪 Logout</button>
 </div>
 
 <!-- MAIN CONTENT -->
-<div id="main" style="margin-left:232px;padding:28px">
+<div id="main" style="display:none;margin-left:232px;padding:28px">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
     <div><h1 style="font-size:22px;font-weight:700;color:#f1f5f9" id="page-title">Dashboard Overview</h1></div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -346,8 +362,51 @@
     buildMonthSel();
     setupProfileSwitchers();
     renderSidebarMenu();
-    await refreshData();
+    setupAuthUI();
+    await initAuth();
   });
+
+  // ---- AUTH GATE: nothing in the app renders until a Supabase Auth
+  // session exists. RLS on every table requires `authenticated`, so an
+  // anon-key request with no session gets rejected by Supabase itself too —
+  // this gate is just the UI-side reflection of that server-side rule.
+  function setupAuthUI() {
+    document.getElementById('login-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-pass').value;
+      const errEl = document.getElementById('login-err');
+      const btn = document.getElementById('btn-login');
+      errEl.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Logging in...';
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = 'Login';
+      if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+      await onAuthed();
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      document.getElementById('sidebar').style.display = 'none';
+      document.getElementById('main').style.display = 'none';
+      document.getElementById('login-gate').style.display = 'flex';
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-pass').value = '';
+    });
+  }
+
+  async function initAuth() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) { await onAuthed(); return; }
+    document.getElementById('login-gate').style.display = 'flex';
+  }
+
+  async function onAuthed() {
+    document.getElementById('login-gate').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    document.getElementById('main').style.display = 'block';
+    await refreshData();
+  }
 
   function setupProfileSwitchers() {
     document.getElementById('prof-radone').addEventListener('click', () => switchProfile('radone'));
