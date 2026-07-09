@@ -341,7 +341,7 @@
 
   let currentProfile = 'radone';
   let income = [], expenses = [], cards = [], debts = [], emis = [];
-  let selMonth = '', modalType = 'income', editId = null;
+  let selMonth = '', modalType = 'income', editId = null, activeSec = 'dashboard';
   let charts = {};
 
   // Escapes free-text DB fields before they're dropped into innerHTML, so a
@@ -507,21 +507,28 @@
   function renderSidebarMenu() {
     const isRadone = currentProfile === 'radone';
     document.getElementById('nav-container').innerHTML = `
-      <div class="nav-link on" data-sec="dashboard">📊 Dashboard</div>
+      <div class="nav-link" data-sec="dashboard">📊 Dashboard</div>
       <div class="nav-link" data-sec="income">💰 Income Log</div>
       <div class="nav-link" data-sec="expenses">💸 Expenses Log</div>
       ${isRadone ? '<div class="nav-link" data-sec="creditcard">💳 Credit Cards</div><div class="nav-link" data-sec="debts">🤝 Debts Ledger</div>' : ''}
       <div class="nav-link" data-sec="wealth">🏦 Wealth Hub</div>
       <div class="nav-link" data-sec="analytics">📈 Analytics</div>
     `;
+    // Keep the section the user was on across re-renders; Radone-only
+    // sections (cards/debts) fall back to Dashboard when Efty is active.
+    if (!document.querySelector(`.nav-link[data-sec="${activeSec}"]`)) activeSec = 'dashboard';
     document.querySelectorAll('.nav-link').forEach(link => {
+      if (link.dataset.sec === activeSec) link.classList.add('on');
       link.addEventListener('click', () => {
+        activeSec = link.dataset.sec;
         document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('on'));
         document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
         link.classList.add('on');
-        document.getElementById('sec-' + link.dataset.sec).classList.add('on');
+        document.getElementById('sec-' + activeSec).classList.add('on');
       });
     });
+    document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+    document.getElementById('sec-' + activeSec).classList.add('on');
   }
 
   function renderUI() {
@@ -898,9 +905,14 @@
     const amt = parseFloat(inputEl.value);
     if(!amt || amt <= 0) { showToast('Enter a valid amount first', true); return; }
     const debt = debts.find(d => d.id == id); if(!debt) return;
-    const rem = Math.max(0, parseFloat(debt.remaining_amount||0) - amt);
 
     try {
+      // Re-read the row right before writing (same pattern as the card
+      // updates) so a repayment saved from the other device between page
+      // load and this click isn't silently overwritten.
+      const { data: freshDebt, error: freshErr } = await sb.from('hub_debts').select('remaining_amount').eq('id', id).single();
+      if (freshErr) { handleErr('read current debt state', freshErr); return; }
+      const rem = Math.max(0, parseFloat(freshDebt.remaining_amount||0) - amt);
       const { error: updErr } = await sb.from('hub_debts').update({ remaining_amount: rem }).eq('id', id);
       if (updErr) { handleErr('update debt', updErr); return; }
 
@@ -1086,7 +1098,7 @@
         <input type="number" id="f-limit" placeholder="Total Limit" value="${item?item.total_limit:''}" />
         <input type="number" id="f-amt" placeholder="Current Due" value="${item?item.current_due:''}" />
         <input type="number" id="f-bill" placeholder="Statement Bill" value="${item?item.current_bill:''}" />
-        <div><input type="date" id="f-cc-date" value="${item?item.due_date:d}" /></div>
+        <div><input type="date" id="f-cc-date" value="${item?(item.due_date||''):d}" /></div>
         <button class="btn-s" id="btn-submit">Save Card</button>`;
     } else if(modalType === 'emi') {
       if (cards.length === 0) {
@@ -1253,36 +1265,11 @@
 })();
 
 // ============ SERVICE WORKER REGISTRATION ============
+// Browsers refuse to register a service worker from a blob: URL, so the
+// worker lives in ./sw.js — a real same-origin file — for offline support.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Create and register a simple inline service worker for offline support
-    const swCode = `
-      const CACHE_NAME = 'financial-hub-v1';
-      const urlsToCache = ['/'];
-      
-      self.addEventListener('install', event => {
-        event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
-      });
-      
-      self.addEventListener('fetch', event => {
-        // Only cache same-origin requests (the app shell). Cross-origin
-        // calls — Supabase API responses carrying financial data — go
-        // straight to the network with no cache fallback and are never
-        // written to the cache.
-        if (new URL(event.request.url).origin !== self.location.origin) return;
-
-        event.respondWith(
-          fetch(event.request).catch(() => {
-            return caches.match(event.request) || caches.match('/');
-          })
-        );
-      });
-    `;
-    
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    
-    navigator.serviceWorker.register(swUrl).then(() => {
+    navigator.serviceWorker.register('./sw.js').then(() => {
       console.log('Service Worker registered for offline support');
     }).catch(err => {
       console.warn('Service Worker registration failed:', err);
