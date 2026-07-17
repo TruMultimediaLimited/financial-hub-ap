@@ -232,8 +232,11 @@
 
   <!-- CREDIT CARD PANE -->
   <div id="sec-creditcard" class="sec">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-size:15px;font-weight:600;color:#94a3b8">Manage Multiple Credit Cards</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px">
+      <div>
+        <div style="font-size:15px;font-weight:600;color:#94a3b8">Manage Multiple Credit Cards</div>
+        <div style="font-size:11.5px;color:#475569;margin-top:3px;max-width:560px">কার্ড দিয়ে খরচ/EMI লগ করলে Due আর Bill নিজে নিজে বাড়ে, Quick Bill Payment দিলে কমে — কার্ড যোগ করার সময় শুধু লিমিট আর বর্তমান বাকিটা দিলেই হয়</div>
+      </div>
       <button class="btn-s" id="btn-add-cc-pane">+ Add New Card</button>
     </div>
     <div class="cc-grid" id="main-cc-grid"></div>
@@ -664,10 +667,10 @@
             <h4 class="font-bold text-blue-400">${esc(c.card_name)}</h4><div class="chip"></div>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px" class="text-xs">
-            <div><span class="text-gray-500">Total Limit</span><p class="amount font-semibold">৳${total.toLocaleString()}</p></div>
-            <div><span class="text-emerald-400">Available Limit</span><p class="amount text-emerald-400 font-bold">৳${freeLimit.toLocaleString()}</p></div>
-            <div><span class="text-red-400">Current Due</span><p class="amount text-red-400 font-semibold">৳${due.toLocaleString()}</p></div>
-            <div><span class="text-amber-400">Month's Bill</span><p class="amount text-amber-300">৳${bill.toLocaleString()}</p></div>
+            <div><span class="text-gray-500">Total Limit (লিমিট)</span><p class="amount font-semibold">৳${total.toLocaleString()}</p></div>
+            <div><span class="text-emerald-400">Available (আরো খরচ করা যাবে)</span><p class="amount text-emerald-400 font-bold">৳${freeLimit.toLocaleString()}</p></div>
+            <div><span class="text-red-400">Total Due (মোট বাকি)</span><p class="amount text-red-400 font-semibold">৳${due.toLocaleString()}</p></div>
+            <div><span class="text-amber-400">Month's Bill (এই মাসের বিল)</span><p class="amount text-amber-300">৳${bill.toLocaleString()}</p></div>
           </div>
           <div class="text-xs border-t border-gray-800 pt-2 mt-2 flex justify-between items-center">
             <span>📅 Due Date: <b>${esc(c.due_date)||'—'}</b></span>
@@ -1204,12 +1207,22 @@
         <input type="number" id="f-amt" placeholder="Amount (৳)" value="${item?item.amount:''}" />
         <button class="btn-p" id="btn-submit">Save Expense</button>`;
     } else if(modalType === 'card') {
+      // Labeled fields with hints — bare placeholders confused users about
+      // what Due vs Statement Bill mean. Statement Bill is auto-managed
+      // (purchases/EMIs add to it, bill payment resets it), so it's only
+      // shown when editing an existing card, never asked for on add.
+      const fld = (label, hint, inputHTML) => `
+        <div>
+          <div style="font-size:11.5px;color:#94a3b8;font-weight:600;margin-bottom:4px">${label}</div>
+          ${inputHTML}
+          ${hint ? `<div style="font-size:10.5px;color:#475569;margin-top:3px">${hint}</div>` : ''}
+        </div>`;
       fBody.innerHTML = `
-        <input type="text" id="f-main" placeholder="Card Issuer Name" value="${item?esc(item.card_name):''}" />
-        <input type="number" id="f-limit" placeholder="Total Limit" value="${item?item.total_limit:''}" />
-        <input type="number" id="f-amt" placeholder="Current Due" value="${item?item.current_due:''}" />
-        <input type="number" id="f-bill" placeholder="Statement Bill" value="${item?item.current_bill:''}" />
-        <div><input type="date" id="f-cc-date" value="${item?(item.due_date||''):d}" /></div>
+        ${fld('কার্ডের নাম', '', `<input type="text" id="f-main" placeholder="যেমন: City Bank Amex Card" value="${item?esc(item.card_name):''}" />`)}
+        ${fld('টোটাল লিমিট (৳)', 'কার্ডের মোট ক্রেডিট লিমিট', `<input type="number" id="f-limit" placeholder="যেমন: 100000" value="${item?(item.total_limit??''):''}" />`)}
+        ${fld('টোটাল ডিউ — এখন পর্যন্ত ইউজ (৳)', 'এই মুহূর্তে কার্ডে যত টাকা বাকি আছে। অ্যাভেইলেবল লিমিট অটো হিসাব হবে (লিমিট − এটা)', `<input type="number" id="f-amt" placeholder="যেমন: 12000" value="${item?(item.current_due??''):''}" />`)}
+        ${item ? fld('Statement Bill — এই মাসের বিল (৳)', 'নিজে নিজে হিসাব হয়: কার্ডে খরচ/EMI লগ করলে বাড়ে, বিল পেমেন্ট করলে ০ হয় — সাধারণত হাত দেওয়া লাগে না', `<input type="number" id="f-bill" value="${item.current_bill??0}" />`) : ''}
+        ${fld('বিল দেওয়ার শেষ তারিখ (Due Date)', 'পরের বিলের লাস্ট ডেট', `<input type="date" id="f-cc-date" value="${item?(item.due_date||''):d}" />`)}
         <button class="btn-s" id="btn-submit">Save Card</button>`;
     } else if(modalType === 'emi') {
       if (cards.length === 0) {
@@ -1298,7 +1311,10 @@
       } else if(modalType === 'card') {
         const total_limit = parseFloat(document.getElementById('f-limit').value);
         const current_due = parseFloat(document.getElementById('f-amt').value);
-        const current_bill = parseFloat(document.getElementById('f-bill').value);
+        // The Statement Bill field only exists when editing — new cards
+        // start at 0 and the app maintains it from there.
+        const billEl = document.getElementById('f-bill');
+        const current_bill = billEl ? parseFloat(billEl.value) : 0;
         const cc_due_date = document.getElementById('f-cc-date').value;
         if (isNaN(total_limit) || total_limit <= 0 || isNaN(current_due) || current_due < 0 || isNaN(current_bill) || current_bill < 0) { showToast('Please fill all card fields with valid amounts', true); return; }
 
