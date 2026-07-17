@@ -387,12 +387,25 @@
     office_out: '🏢 Given to Office (General)',
     radone_dps: '⏳ Radone DPS Deposit',
     food: '🍛 Food Outside',
+    emi_installment: '📆 EMI কিস্তি',
+    cc_bill_payment: '💳 Card Bill Payment (Transfer)',
     misc: '⚙ Misc Expenses'
   };
 
   // Expense categories that count as "office spending" — shared by the
   // dashboard Office Financials widget and the Office Expense Breakdown.
   const OFFICE_EXP_CATS = ['office_out', 'office_ent', 'office_equip'];
+
+  // A credit-card bill payment settles the card's due — the actual spending
+  // was already counted as an expense when each purchase / EMI installment
+  // was logged. So these rows still reduce the paying wallet's balance and
+  // stay in the Expenses Log, but are excluded from every expense TOTAL
+  // (KPIs, breakdown, analytics) to avoid double counting. Rows created
+  // before the dedicated category existed are matched by their
+  // auto-generated "<card name> Bill Paid" description.
+  function isTransfer(e) {
+    return e.category === 'cc_bill_payment' || cards.some(c => e.description === c.card_name + ' Bill Paid');
+  }
 
   const EFTY_CATS = {
     shop_rent: '🏬 Shop Rent & Bills',
@@ -586,8 +599,12 @@
     // into BDT, so they don't contribute to the BDT-denominated totals below.
     const getAmtBDT = (x) => isUSD(x) ? 0 : parseFloat(x.amount || 0);
 
+    // Card bill payments are transfers, not new spending — keep them out of
+    // every total so purchases/EMI installments aren't counted twice.
+    const mExpSpend = mExp.filter(e => !isTransfer(e));
+
     const tInc = mInc.reduce((sum, i) => sum + getAmtBDT(i), 0);
-    const tExp = mExp.reduce((sum, e) => sum + getAmtBDT(e), 0);
+    const tExp = mExpSpend.reduce((sum, e) => sum + getAmtBDT(e), 0);
     const net = tInc - tExp;
 
     document.getElementById('kpi-inc').textContent = '৳' + tInc.toLocaleString();
@@ -604,7 +621,7 @@
         i.category_group && (i.category_group.includes('4R') || i.category_group.includes('Truphoto') || i.category_group.includes('Tru Multimedia'))
       ).reduce((sum, i) => sum + getAmtBDT(i), 0);
 
-      const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category))
+      const officeExp = mExpSpend.filter(e => OFFICE_EXP_CATS.includes(e.category))
         .reduce((sum, e) => sum + getAmtBDT(e), 0);
 
       const officeProfit = officeInc - officeExp;
@@ -616,11 +633,11 @@
       // Kurti Paradise Shop Summary (Efty only). Profit/Loss is a flat 20%
       // of Total Sale by design — not sale minus the costs below, which are
       // shown purely for visibility.
-      const staffServiceCost = mExp.filter(e =>
+      const staffServiceCost = mExpSpend.filter(e =>
         e.category === 'shop_rent' || e.category === 'staff_salary' || e.category === 'service_charge'
       ).reduce((sum, e) => sum + getAmtBDT(e), 0);
 
-      const purchaseCost = mExp.filter(e => e.category === 'sourcing').reduce((sum, e) => sum + getAmtBDT(e), 0);
+      const purchaseCost = mExpSpend.filter(e => e.category === 'sourcing').reduce((sum, e) => sum + getAmtBDT(e), 0);
 
       const totalSale = mInc.filter(i => i.category_group === 'Kurti Paradise Sale').reduce((sum, i) => sum + getAmtBDT(i), 0);
 
@@ -695,19 +712,19 @@
       <td>${e.date}</td>
       <td><b>${esc(e.description)}</b></td>
       <td><span class="text-amber-400 font-medium">${esc(e.project_tag) || '—'}</span></td>
-      <td><span class="badge bg-gray-900">${esc(activeCats[e.category]||e.category)}</span></td>
+      <td><span class="badge bg-gray-900">${esc(activeCats[e.category]||e.category)}</span>${isTransfer(e) ? ' <span class="badge bg-blue-950 text-blue-400" title="খরচের টোটালে গোনা হয় না — কার্ডের বিল শোধ">Transfer</span>' : ''}</td>
       <td><span class="text-xs text-amber-500">${esc(e.payment_method)}</span></td>
       <td style="text-align:right" class="amount text-red-400">৳${parseFloat(e.amount||0).toLocaleString()}</td>
       <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('expense','${e.id}')">✍️ Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_expenses','${e.id}')">✕</button></td>
     </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No expense records for this month</td></tr>';
 
-    renderBreakdown(mExp, activeCats, getAmtBDT);
+    renderBreakdown(mExpSpend, activeCats, getAmtBDT);
     renderDebtsPanel();
     if (isRadone) renderEmiPanel();
     renderAssetsStatement(income, expenses);
 
     try {
-      renderAnalytics(mInc, mExp, activeCats, getAmtBDT);
+      renderAnalytics(mInc, mExpSpend, activeCats, getAmtBDT);
     } catch(err) { console.error("Chart render error:", err); }
   }
 
@@ -912,7 +929,7 @@
       const { error: e2 } = await sb.from('hub_expenses').insert([{
         date: today,
         description: `${emi.item_name} — EMI কিস্তি ${newPaid}/${totalMonths}`,
-        category: 'misc',
+        category: 'emi_installment',
         amount: emi.monthly_installment,
         payment_method: emi.card_name,
         project_tag: 'EMI',
@@ -1340,7 +1357,10 @@
       const { error: e1 } = await sb.from('credit_card_status').update({ current_due: Math.max(0, parseFloat(freshCard.current_due||0) - amt), current_bill: 0 }).eq('id', cardId);
       if (e1) { handleErr('update card due', e1); return; }
 
-      const { error: e2 } = await sb.from('hub_expenses').insert([{ date: new Date().toISOString().split('T')[0], description: `${card.card_name} Bill Paid`, category: 'misc', amount: amt, payment_method: payMethod, profile_owner: 'radone' }]);
+      // Logged as a transfer (cc_bill_payment): reduces the paying wallet
+      // but is excluded from expense totals — the spending was already
+      // counted when each purchase / EMI installment was logged.
+      const { error: e2 } = await sb.from('hub_expenses').insert([{ date: new Date().toISOString().split('T')[0], description: `${card.card_name} Bill Paid`, category: 'cc_bill_payment', amount: amt, payment_method: payMethod, profile_owner: 'radone' }]);
       if (e2) { handleErr('log card payment expense', e2); return; }
 
       document.getElementById('pay-cc-amt').value = '';
