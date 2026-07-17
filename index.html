@@ -47,6 +47,9 @@
     .prof-btn{padding:8px 16px;border-radius:20px;font-weight:600;cursor:pointer;font-size:13px;transition:all 0.2s}
     .prof-btn.active{background:#10b981;color:white;box-shadow:0 0 12px rgba(16,185,129,0.4)}
     .prof-btn.inactive{background:#1e293b;color:#64748b}
+    details.bd-cat summary{cursor:pointer;list-style:none}
+    details.bd-cat summary::-webkit-details-marker{display:none}
+    .clickable{cursor:pointer}
     #conn-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#7f1d1d;color:#fecaca;text-align:center;font-size:13px;padding:8px}
     #login-gate{position:fixed;inset:0;z-index:20000;background:#060d1a;display:flex;align-items:center;justify-content:center;padding:20px}
   </style>
@@ -105,9 +108,10 @@
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase">Total Earnings (Month)</div>
         <div class="amount" style="font-size:26px;font-weight:700;color:#34d399;margin-top:8px" id="kpi-inc">৳0</div>
       </div>
-      <div class="glass" style="border-radius:14px;padding:20px">
+      <div class="glass clickable" id="kpi-exp-card" title="বিস্তারিত খরচের হিসাব দেখুন" style="border-radius:14px;padding:20px">
         <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase">Total Expenses (Month)</div>
         <div class="amount" style="font-size:26px;font-weight:700;color:#f87171;margin-top:8px" id="kpi-exp">৳0</div>
+        <div style="font-size:10.5px;color:#475569;margin-top:6px">🧾 ক্লিক করে ব্রেকডাউন দেখুন</div>
       </div>
       <div class="gem" style="border-radius:14px;padding:20px">
         <div style="font-size:11px;color:#10b981;font-weight:600;text-transform:uppercase">Net Savings</div>
@@ -123,8 +127,8 @@
           <div style="font-size:11px;color:#475569;margin-bottom:6px">Office Income</div>
           <div class="amount" style="font-size:20px;font-weight:700;color:#34d399" id="office-income">৳0</div>
         </div>
-        <div>
-          <div style="font-size:11px;color:#475569;margin-bottom:6px">Office Expense</div>
+        <div class="clickable" id="office-exp-cell" title="বিস্তারিত খরচের হিসাব দেখুন">
+          <div style="font-size:11px;color:#475569;margin-bottom:6px">Office Expense 🧾</div>
           <div class="amount" style="font-size:20px;font-weight:700;color:#f87171" id="office-expense">৳0</div>
         </div>
         <div>
@@ -204,6 +208,25 @@
           <tbody id="exp-tbody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- EXPENSE BREAKDOWN SEC -->
+  <div id="sec-breakdown" class="sec">
+    <div class="glass" style="border-radius:14px;padding:20px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px">
+        <div style="font-size:15px;font-weight:600;color:#94a3b8">💸 Total Expense Breakdown (This Month)</div>
+        <div class="amount" style="font-size:18px;font-weight:700;color:#f87171" id="breakdown-total-amt">৳0</div>
+      </div>
+      <div style="font-size:11.5px;color:#475569;margin-bottom:14px">ক্যাটাগরিতে ক্লিক করলে ভেতরের খরচগুলো দেখা যাবে</div>
+      <div id="breakdown-total-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <div class="glass" id="breakdown-office-panel" style="border-radius:14px;padding:20px;background:linear-gradient(135deg, rgba(37,99,235,0.1), rgba(59,130,246,0.05))">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:600;color:#94a3b8">📊 Office Expense Breakdown (This Month)</div>
+        <div class="amount" style="font-size:18px;font-weight:700;color:#f87171" id="breakdown-office-amt">৳0</div>
+      </div>
+      <div id="breakdown-office-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
   </div>
 
@@ -367,6 +390,10 @@
     misc: '⚙ Misc Expenses'
   };
 
+  // Expense categories that count as "office spending" — shared by the
+  // dashboard Office Financials widget and the Office Expense Breakdown.
+  const OFFICE_EXP_CATS = ['office_out', 'office_ent', 'office_equip'];
+
   const EFTY_CATS = {
     shop_rent: '🏬 Shop Rent & Bills',
     staff_salary: '👥 Staff Salary',
@@ -442,6 +469,13 @@
     document.getElementById('btn-close-modal').addEventListener('click', () => document.getElementById('modal').style.display='none');
     document.getElementById('btn-submit-cc-pay').addEventListener('click', executeCardPayment);
     document.getElementById('month-sel').addEventListener('change', function() { selMonth = this.value; renderUI(); });
+    document.getElementById('kpi-exp-card').addEventListener('click', () => goToSec('breakdown'));
+    document.getElementById('office-exp-cell').addEventListener('click', () => goToSec('breakdown'));
+  }
+
+  function goToSec(sec) {
+    const link = document.querySelector(`.nav-link[data-sec="${sec}"]`);
+    if (link) link.click();
   }
 
   function switchProfile(prof) {
@@ -510,6 +544,7 @@
       <div class="nav-link" data-sec="dashboard">📊 Dashboard</div>
       <div class="nav-link" data-sec="income">💰 Income Log</div>
       <div class="nav-link" data-sec="expenses">💸 Expenses Log</div>
+      <div class="nav-link" data-sec="breakdown">🧾 খরচের হিসাব</div>
       ${isRadone ? '<div class="nav-link" data-sec="creditcard">💳 Credit Cards</div><div class="nav-link" data-sec="debts">🤝 Debts Ledger</div>' : ''}
       <div class="nav-link" data-sec="wealth">🏦 Wealth Hub</div>
       <div class="nav-link" data-sec="analytics">📈 Analytics</div>
@@ -569,9 +604,8 @@
         i.category_group && (i.category_group.includes('4R') || i.category_group.includes('Truphoto') || i.category_group.includes('Tru Multimedia'))
       ).reduce((sum, i) => sum + getAmtBDT(i), 0);
 
-      const officeExp = mExp.filter(e =>
-        e.category && (e.category === 'office_out' || e.category === 'office_ent' || e.category === 'office_equip')
-      ).reduce((sum, e) => sum + getAmtBDT(e), 0);
+      const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category))
+        .reduce((sum, e) => sum + getAmtBDT(e), 0);
 
       const officeProfit = officeInc - officeExp;
 
@@ -667,6 +701,7 @@
       <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('expense','${e.id}')">✍️ Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_expenses','${e.id}')">✕</button></td>
     </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No expense records for this month</td></tr>';
 
+    renderBreakdown(mExp, activeCats, getAmtBDT);
     renderDebtsPanel();
     if (isRadone) renderEmiPanel();
     renderAssetsStatement(income, expenses);
@@ -960,6 +995,65 @@
       showToast('Purged Successfully!');
       await refreshData();
     } catch(err) { handleErr('deleteMasterRecord', err); }
+  }
+
+  // Groups a list of expenses by category into expandable rows: each row
+  // shows the category's total, share of grandTotal, and a bar; opening it
+  // reveals the individual entries. Used by both breakdown panels so their
+  // rendering can't drift apart.
+  function buildBreakdownHTML(expList, activeCats, getAmtBDT, grandTotal, openAll = false) {
+    const groups = {};
+    expList.forEach(e => {
+      const key = e.category || 'misc';
+      if (!groups[key]) groups[key] = { total: 0, entries: [] };
+      groups[key].total += getAmtBDT(e);
+      groups[key].entries.push(e);
+    });
+    const sorted = Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
+    if (!sorted.length) return '<div style="color:#475569;font-size:13px">No expense records for this month</div>';
+
+    return sorted.map(([cat, g]) => {
+      const pct = grandTotal > 0 ? (g.total / grandTotal) * 100 : 0;
+      const rows = g.entries.map(e => `
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid rgba(30,41,59,.7);font-size:12.5px">
+          <span style="color:#64748b;white-space:nowrap">${e.date || ''}</span>
+          <span style="flex:1;color:#cbd5e1">${esc(e.description)}${e.project_tag ? ` <span style="color:#f59e0b;font-size:11px">· ${esc(e.project_tag)}</span>` : ''}</span>
+          <span style="color:#64748b;font-size:11px;white-space:nowrap">${esc(e.payment_method)}</span>
+          <span class="amount text-red-400" style="white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</span>
+        </div>`).join('');
+      return `
+        <details class="bd-cat" style="background:#0f172a;border-radius:10px;overflow:hidden" ${openAll ? 'open' : ''}>
+          <summary style="padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <span style="font-size:13px;color:#cbd5e1">${esc(activeCats[cat] || cat)} <span style="color:#475569;font-size:11.5px">(${g.entries.length})</span></span>
+              <span style="display:flex;align-items:center;gap:10px">
+                <span style="color:#64748b;font-size:11.5px">${pct.toFixed(1)}%</span>
+                <span class="amount" style="font-weight:700;color:#f87171">৳${g.total.toLocaleString()}</span>
+              </span>
+            </div>
+            <div style="height:5px;background:#1e293b;border-radius:100px;margin-top:8px"><div style="height:100%;width:${Math.min(100, pct)}%;background:linear-gradient(90deg,#ef4444,#f87171);border-radius:100px"></div></div>
+          </summary>
+          <div style="padding-bottom:4px">${rows}</div>
+        </details>`;
+    }).join('');
+  }
+
+  function renderBreakdown(mExp, activeCats, getAmtBDT) {
+    const isRadone = currentProfile === 'radone';
+    const total = mExp.reduce((s, e) => s + getAmtBDT(e), 0);
+    document.getElementById('breakdown-total-amt').textContent = '৳' + total.toLocaleString();
+    document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(mExp, activeCats, getAmtBDT, total);
+
+    // Office breakdown mirrors the dashboard Office Financials widget:
+    // Radone only, same OFFICE_EXP_CATS filter, entries opened by default
+    // since there are only a few office categories.
+    document.getElementById('breakdown-office-panel').style.display = isRadone ? 'block' : 'none';
+    if (isRadone) {
+      const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category));
+      const officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
+      document.getElementById('breakdown-office-amt').textContent = '৳' + officeTotal.toLocaleString();
+      document.getElementById('breakdown-office-list').innerHTML = buildBreakdownHTML(officeExp, activeCats, getAmtBDT, officeTotal, true);
+    }
   }
 
   function renderAssetsStatement(pInc, pExp) {
