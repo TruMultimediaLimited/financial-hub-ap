@@ -89,7 +89,7 @@
 
     /* ---- Profile dropdown (header) ---- */
     .prof-dd{position:relative}
-    .prof-dd-trigger{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 14px 8px 8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text);width:172px;min-height:44px;box-shadow:var(--shadow-card)}
+    .prof-dd-trigger{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 14px 8px 8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text);width:132px;min-height:44px;box-shadow:var(--shadow-card)}
     .prof-dd-trigger>span:last-child{margin-left:auto}
     .prof-dd-trigger:hover{border-color:var(--acc)}
     .prof-dd-trigger .icon-badge{background:var(--acc-dim);width:28px;height:28px;font-size:14px}
@@ -99,7 +99,7 @@
        a plain width:auto, which is why this used to render oversized; the
        select is now borderless/auto-width and the wrapper owns the pill
        chrome instead. */
-    .month-sel-wrap{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 12px;width:172px;min-height:44px;box-shadow:var(--shadow-card)}
+    .month-sel-wrap{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 12px;width:132px;min-height:44px;box-shadow:var(--shadow-card)}
     .month-sel-wrap:hover{border-color:var(--acc)}
     #month-sel{flex:1;min-width:0;width:auto!important;background:transparent!important;border:none!important;padding:0!important;min-height:0;font-size:13.5px!important;font-weight:600;text-overflow:ellipsis}
 
@@ -714,7 +714,7 @@
     for (let i = 0; i < 12; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const val = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-      const o = document.createElement('option'); o.value = val; o.textContent = d.toLocaleString('en', { month:'long', year:'numeric' });
+      const o = document.createElement('option'); o.value = val; o.textContent = d.toLocaleString('en', { month:'short', year:'numeric' });
       sel.appendChild(o);
     }
     selMonth = sel.value;
