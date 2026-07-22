@@ -317,12 +317,37 @@
 
   <!-- EXPENSE BREAKDOWN SEC -->
   <div id="sec-breakdown" class="sec">
+    <div style="border-radius:18px;padding:22px;margin-bottom:16px;background:linear-gradient(135deg,#0B1220,#1E293B);color:#fff;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0">
+          <span style="background:rgba(59,130,246,.22);color:#60A5FA;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0" data-icon="pie" data-icon-size="20"></span>
+          <div style="min-width:0">
+            <div style="font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Financial Breakdown</div>
+            <div style="font-size:11.5px;color:#94A3B8;margin-top:2px">এই মাসের মোট খরচের হিসাব</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;white-space:nowrap" id="breakdown-hero-month"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:22px">
+        <div style="min-width:0">
+          <div style="font-size:10.5px;color:#94A3B8;letter-spacing:.06em;font-weight:600">TOTAL EXPENSE</div>
+          <div class="amount" style="font-size:25px;font-weight:800;margin-top:4px;white-space:nowrap" id="breakdown-hero-total">৳0</div>
+          <div id="breakdown-hero-trend" style="display:none;align-items:center;gap:5px;margin-top:10px;border-radius:100px;padding:4px 12px;font-size:11.5px;font-weight:600;width:fit-content"></div>
+        </div>
+        <div style="position:relative;width:96px;height:96px;flex-shrink:0">
+          <div id="breakdown-hero-ring"></div>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+            <div style="font-size:9.5px;color:#94A3B8">সর্বোচ্চ</div>
+            <div style="font-size:14px;font-weight:700" id="breakdown-hero-max">0%</div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="glass" style="border-radius:14px;padding:20px;margin-bottom:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
         <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="receipt" data-icon-size="16" style="color:var(--neg)"></span>Personal Breakdown</div>
         <div class="amount" style="font-size:18px;font-weight:700;color:var(--neg)" id="breakdown-total-amt">৳0</div>
       </div>
-      <div style="font-size:11.5px;color:#475569;margin-bottom:14px">ক্যাটাগরিতে ক্লিক করলে ভেতরের খরচগুলো দেখা যাবে</div>
       <div id="breakdown-total-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
     <div class="glass" id="breakdown-office-panel" style="border-radius:14px;padding:20px">
@@ -1059,7 +1084,11 @@
       </div>`
     }).join('') || '<div style="text-align:center;color:#475569;padding:20px 0">No expense records for this month</div>';
 
-    renderBreakdown(mExpSpend, activeCats, getAmtBDT);
+    const [selY, selM] = selMonth.split('-').map(Number);
+    const prevMonthDate = new Date(selY, selM - 2, 1);
+    const prevMonthStr = prevMonthDate.getFullYear() + '-' + String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+    const prevExpTotal = pExp.filter(e => e.date && e.date.startsWith(prevMonthStr) && !isTransfer(e)).reduce((s, e) => s + getAmtBDT(e), 0);
+    renderBreakdown(mExpSpend, activeCats, getAmtBDT, prevExpTotal);
     renderDebtsPanel();
     if (isRadone) renderEmiPanel();
     renderAssetsStatement(income, expenses);
@@ -1403,7 +1432,9 @@
     { bg: '#EEF2FF', ring: '#E0E7FF', text: '#4338CA', bar: '#6366F1' }
   ];
 
-  function buildBreakdownHTML(expList, activeCats, getAmtBDT, grandTotal, openAll = false) {
+  // Shared by buildBreakdownHTML and the hero ring so a category's card
+  // color always matches its ring segment color (same sort, same index).
+  function groupByCategory(expList, getAmtBDT) {
     const groups = {};
     expList.forEach(e => {
       const key = e.category || 'misc';
@@ -1411,7 +1442,40 @@
       groups[key].total += getAmtBDT(e);
       groups[key].entries.push(e);
     });
-    const sorted = Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
+    return Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
+  }
+
+  // Multi-segment ring (one arc per category, colored to match CAT_COLORS)
+  // for the Breakdown hero card, plus the largest category's share for the
+  // "সর্বোচ্চ" center label.
+  function buildExpenseRing(sorted, grandTotal) {
+    const size = 96, stroke = 11, r = (size - stroke) / 2, c = 2 * Math.PI * r;
+    if (!sorted.length || grandTotal <= 0) {
+      return { svg: `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="${stroke}"/></svg>`, maxPct: 0 };
+    }
+    let offset = 0;
+    const arcs = sorted.map(([cat, g], idx) => {
+      const pct = (g.total / grandTotal) * 100;
+      const color = CAT_COLORS[idx % CAT_COLORS.length].bar;
+      const len = (pct / 100) * c;
+      const gap = sorted.length > 1 ? Math.min(2, len / 2) : 0;
+      const dash = `${Math.max(0, len - gap)} ${c - len + gap}`;
+      const rotate = (offset / c) * 360 - 90;
+      offset += len;
+      return `<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-dasharray="${dash}" stroke-linecap="round" transform="rotate(${rotate} ${size/2} ${size/2})"/>`;
+    }).join('');
+    const maxPct = (sorted[0][1].total / grandTotal) * 100;
+    const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="${stroke}"/>${arcs}</svg>`;
+    return { svg, maxPct };
+  }
+
+  function formatMonthLabel(ym) {
+    const [y, m] = ym.split('-').map(Number);
+    return new Date(y, m - 1, 1).toLocaleString('en', { month: 'short', year: 'numeric' });
+  }
+
+  function buildBreakdownHTML(expList, activeCats, getAmtBDT, grandTotal, openAll = false) {
+    const sorted = groupByCategory(expList, getAmtBDT);
     if (!sorted.length) return '<div style="color:#475569;font-size:13px">No expense records for this month</div>';
 
     return sorted.map(([cat, g], idx) => {
@@ -1453,11 +1517,28 @@
     }).join('');
   }
 
-  function renderBreakdown(mExp, activeCats, getAmtBDT) {
+  function renderBreakdown(mExp, activeCats, getAmtBDT, prevTotal) {
     const isRadone = currentProfile === 'radone';
     const total = mExp.reduce((s, e) => s + getAmtBDT(e), 0);
     document.getElementById('breakdown-total-amt').textContent = '৳' + total.toLocaleString();
     document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(mExp, activeCats, getAmtBDT, total);
+
+    document.getElementById('breakdown-hero-month').textContent = formatMonthLabel(selMonth);
+    document.getElementById('breakdown-hero-total').textContent = '৳' + total.toLocaleString();
+    const { svg, maxPct } = buildExpenseRing(groupByCategory(mExp, getAmtBDT), total);
+    document.getElementById('breakdown-hero-ring').innerHTML = svg;
+    document.getElementById('breakdown-hero-max').textContent = maxPct.toFixed(1) + '%';
+    const trendEl = document.getElementById('breakdown-hero-trend');
+    if (prevTotal > 0) {
+      const diffPct = ((total - prevTotal) / prevTotal) * 100;
+      const less = diffPct <= 0;
+      trendEl.style.display = 'inline-flex';
+      trendEl.style.background = less ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)';
+      trendEl.style.color = less ? '#34D399' : '#F87171';
+      trendEl.textContent = `${less ? '↘' : '↗'} গত মাসের চেয়ে ${Math.abs(diffPct).toFixed(0)}% ${less ? 'কম' : 'বেশি'}`;
+    } else {
+      trendEl.style.display = 'none';
+    }
 
     // Office breakdown mirrors the dashboard Office Financials widget:
     // Radone only, same OFFICE_EXP_CATS filter, entries opened by default
