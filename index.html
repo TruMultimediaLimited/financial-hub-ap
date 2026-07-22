@@ -1902,11 +1902,20 @@
       const methods = isRadone ? [...radoneBase, ...cardOptions] : eftyMethods;
       let methodSelectHTML = `<select id="f-method">${methods.map(m=>`<option value="${esc(m.value)}" ${item&&item.payment_method===m.value?'selected':''}>${esc(m.label)}</option>`).join('')}</select>`;
 
+      // Adding fresh (not editing) via the Personal/Office Expense buttons
+      // only offers that side's categories — otherwise both sets stay mixed
+      // in one dropdown regardless of which button was used. Editing an
+      // existing row always shows every category so its current one stays
+      // selectable and reclassifying it is still possible.
+      const catOptions = (isRadone && !item)
+        ? Object.fromEntries(Object.entries(cats).filter(([k]) => OFFICE_EXP_CATS.includes(k) === (expenseView === 'office')))
+        : cats;
+
       fBody.innerHTML = `
         <input type="date" id="f-date" value="${d}" />
         <input type="text" id="f-main" placeholder="Description Item" value="${item?esc(item.description):''}" />
         <input type="text" id="f-project" placeholder="Project Name (Optional)" value="${item?esc(item.project_tag||''):''}" />
-        <select id="f-cat">${Object.keys(cats).map(k=>`<option value="${k}" ${item&&item.category===k?'selected':''}>${cats[k]}</option>`).join('')}</select>
+        <select id="f-cat">${Object.keys(catOptions).map(k=>`<option value="${k}" ${item&&item.category===k?'selected':''}>${catOptions[k]}</option>`).join('')}</select>
         ${methodSelectHTML}
         <input type="number" id="f-amt" placeholder="Amount (৳)" value="${item?item.amount:''}" />
         <button class="btn-p" id="btn-submit">Save Expense</button>`;
