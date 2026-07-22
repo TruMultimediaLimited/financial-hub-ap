@@ -25,12 +25,12 @@
       --surface-0:#060d1a; --surface-1:rgba(15,23,42,.7); --surface-2:rgba(30,41,59,.55);
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100vh;background:#060d1a;color:#e2e8f0;font-family:'Inter',sans-serif}
+    html,body{min-height:100vh;background:#060d1a;color:#e2e8f0;font-family:'Inter',sans-serif;overflow-x:hidden;max-width:100vw}
     ::-webkit-scrollbar{width:5px;height:5px}
     ::-webkit-scrollbar-track{background:#0f172a}
     ::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}
-    .glass{background:rgba(15,23,42,0.85);border:1px solid rgba(51,65,85,0.5)}
-    .gem{background:rgba(6,78,59,0.18);border:1px solid rgba(16,185,129,0.22)}
+    .glass{background:rgba(15,23,42,0.85);border:1px solid rgba(51,65,85,0.5);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+    .gem{background:rgba(6,78,59,0.18);border:1px solid rgba(16,185,129,0.22);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
     input,select,textarea{background:#0f172a!important;color:#e2e8f0!important;border:1px solid #1e293b!important;border-radius:8px!important;padding:8px 12px!important;font-size:14px;outline:none;width:100%}
     input:focus,select:focus{border-color:#10b981!important}
     .btn-p{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border-radius:8px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none}
@@ -47,12 +47,15 @@
     th{text-align:left;padding:10px 12px;font-size:11px;color:#475569;border-bottom:1px solid #0f172a;text-transform:uppercase}
     td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(15,23,42,.8);color:#cbd5e1;vertical-align:middle}
     .modal-bg{position:fixed;inset:0;background:rgba(2,6,20,.82);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
-    .modal{background:#0c1526;border:1px solid #1e293b;border-radius:16px;padding:24px;width:100%;max-width:480px}
+    .modal{background:#0c1526;border:1px solid #1e293b;border-radius:14px;padding:24px;width:100%;max-width:480px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
     .toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;background:rgba(6,50,38,.97);border:1px solid #10b981;color:#6ee7b7}
     .toast.err{background:rgba(60,10,10,.97);border:1px solid #ef4444;color:#fca5a5}
     .badge{display:inline-flex;padding:2px 8px;border-radius:100px;font-size:12px}
-    .cc-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px;margin-bottom:20px}
-    .cc-bg{background:linear-gradient(135deg,#0f172a,#1e293b,#111827);border:1px solid rgba(59,130,246,0.2);border-radius:16px;padding:20px;position:relative}
+    .cc-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px;margin-bottom:16px}
+    .cc-bg{background:linear-gradient(135deg,#0f172a,#1e293b,#111827);border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:20px;position:relative;box-shadow:0 2px 10px rgba(0,0,0,.25);min-width:0}
+    .cc-dots{display:none;justify-content:center;gap:6px;margin-top:2px;margin-bottom:16px}
+    .cc-dots .dot{width:6px;height:6px;border-radius:50%;background:#334155;transition:background .15s,transform .15s}
+    .cc-dots .dot.on{background:var(--acc);transform:scale(1.3)}
     .chip{width:34px;height:26px;background:linear-gradient(135deg,#c9961a,#f0c040);border-radius:4px;margin-bottom:12px}
     details.bd-cat summary{cursor:pointer;list-style:none}
     details.bd-cat summary::-webkit-details-marker{display:none}
@@ -69,16 +72,23 @@
 
     /* ---- Shared visual-hierarchy primitives ---- */
     .icon-badge{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:16px;flex-shrink:0}
-    .stat-tile{background:var(--surface-2);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
-    .stat-tile .stat-label{font-size:10.5px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .stat-tile .stat-val{font-size:15px;font-weight:700;color:#e2e8f0}
-    .row-hover{border-radius:8px;padding:8px;margin:0 -8px;transition:background .12s}
+    .stat-tile{background:var(--surface-2);border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;min-height:64px}
+    .stat-tile .stat-label{font-size:10.5px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:5px;min-width:0}
+    .stat-tile .stat-label span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+    .stat-tile .stat-val{font-size:15px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .kpi-amt{font-size:24px}
+    #office-fin-grid>div,#shop-fin-grid>div{min-width:0}
+    #office-fin-grid .amount,#shop-fin-grid .amount{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .row-hover{border-radius:8px;padding:8px;margin:0 -8px;transition:background .12s;min-width:0}
     .row-hover:hover,.row-hover:active{background:rgba(148,163,184,.08)}
+    .row-hover .row-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .row-hover .row-amt{flex-shrink:0;white-space:nowrap;margin-left:10px}
 
     /* ---- Profile dropdown (header) ---- */
     .prof-dd{position:relative}
-    .prof-dd-trigger{display:flex;align-items:center;gap:8px;background:rgba(15,23,42,.7);border:1px solid #1e293b;border-radius:10px;padding:7px 12px;cursor:pointer;font-size:13px;font-weight:600;color:#e2e8f0}
-    .prof-dd-trigger:hover{border-color:#334155}
+    .prof-dd-trigger{display:flex;align-items:center;gap:9px;background:rgba(15,23,42,.7);border:1px solid #334155;border-radius:12px;padding:8px 14px 8px 8px;cursor:pointer;font-size:13.5px;font-weight:600;color:#e2e8f0;min-height:44px}
+    .prof-dd-trigger:hover{border-color:var(--acc)}
+    .prof-dd-trigger .icon-badge{background:var(--acc-dim);width:28px;height:28px;font-size:14px}
     .prof-dd-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:170px;background:#0c1526;border:1px solid #1e293b;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.45);padding:6px;z-index:400}
     .prof-dd.open .prof-dd-menu{display:block}
     .prof-dd-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:#cbd5e1}
@@ -98,10 +108,18 @@
        has ever had — previously the sidebar was always fixed-width) ---- */
     @media (max-width: 767px){
       #sidebar{display:none!important}
-      #main{margin-left:0!important;padding:16px!important;padding-bottom:84px!important}
+      #main{margin-left:0!important;padding:16px!important;padding-bottom:84px!important;max-width:100vw;overflow-x:hidden}
       #bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:500;background:rgba(6,10,20,.98);border-top:1px solid #0f172a;padding:4px 2px env(max(env(safe-area-inset-bottom),4px));backdrop-filter:blur(6px)}
-      .cc-grid{display:flex!important;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding-bottom:4px}
-      .cc-grid .cc-bg{flex:0 0 82%;scroll-snap-align:start}
+      #kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+      #kpi-grid>*:nth-child(3){grid-column:1 / -1}
+      .kpi-amt{font-size:19px}
+      #office-fin-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+      #office-fin-grid>*:nth-child(3){grid-column:1 / -1}
+      #shop-fin-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+      #recent-grid{grid-template-columns:1fr!important}
+      .cc-grid{display:flex!important;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding-bottom:4px;margin-bottom:8px}
+      .cc-grid .cc-bg{flex:0 0 90%;scroll-snap-align:center}
+      .cc-dots{display:flex}
     }
     @media (min-width: 768px){
       #more-sheet, #bottom-nav{display:none!important}
@@ -143,7 +161,7 @@
     <div style="display:flex;align-items:center;gap:12px;min-width:0">
       <!-- Profile dropdown: replaces the old sidebar Radone/Efty toggle -->
       <div class="prof-dd" id="prof-dd">
-        <button type="button" class="prof-dd-trigger" id="prof-dd-trigger"><span id="prof-dd-label">👨‍💻 Radone</span> <span style="color:#475569;font-size:10px">▾</span></button>
+        <button type="button" class="prof-dd-trigger" id="prof-dd-trigger"><span class="icon-badge" id="prof-dd-icon">👨‍💻</span><span id="prof-dd-label">Radone</span><span style="color:#475569;font-size:10px;margin-left:2px">▾</span></button>
         <div class="prof-dd-menu" id="prof-dd-menu"></div>
       </div>
       <h1 style="font-size:20px;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="page-title">Dashboard Overview</h1>
@@ -157,35 +175,35 @@
 
   <!-- DASHBOARD SEC -->
   <div id="sec-dashboard" class="sec on">
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
-      <div class="glass" style="border-radius:14px;padding:20px 18px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px">
+      <div class="glass" style="border-radius:14px;padding:18px;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
           <span class="icon-badge" style="background:var(--pos-dim)">💰</span>
-          <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase">Total Earnings</div>
+          <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Total Earnings</div>
         </div>
-        <div class="amount" style="font-size:24px;font-weight:700;color:var(--pos)" id="kpi-inc">৳0</div>
+        <div class="amount kpi-amt" style="font-weight:700;color:var(--pos);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="kpi-inc">৳0</div>
       </div>
-      <div class="glass clickable" id="kpi-exp-card" title="বিস্তারিত খরচের হিসাব দেখুন" style="border-radius:14px;padding:20px 18px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div class="glass clickable" id="kpi-exp-card" title="বিস্তারিত খরচের হিসাব দেখুন" style="border-radius:14px;padding:18px;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
           <span class="icon-badge" style="background:var(--neg-dim)">💸</span>
-          <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase">Total Expenses</div>
+          <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Total Expenses</div>
         </div>
-        <div class="amount" style="font-size:24px;font-weight:700;color:var(--neg)" id="kpi-exp">৳0</div>
+        <div class="amount kpi-amt" style="font-weight:700;color:var(--neg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="kpi-exp">৳0</div>
         <div style="font-size:10.5px;color:#475569;margin-top:8px">🧾 ক্লিক করে ব্রেকডাউন দেখুন</div>
       </div>
-      <div class="gem" style="border-radius:14px;padding:20px 18px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div class="gem" style="border-radius:14px;padding:18px;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
           <span class="icon-badge" style="background:var(--acc-dim)">🏦</span>
-          <div style="font-size:11px;color:#10b981;font-weight:600;text-transform:uppercase">Net Savings</div>
+          <div style="font-size:11px;color:#10b981;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Net Savings</div>
         </div>
-        <div class="amount" style="font-size:24px;font-weight:700" id="kpi-sav">৳0</div>
+        <div class="amount kpi-amt" style="font-weight:700" id="kpi-sav">৳0</div>
       </div>
     </div>
 
     <!-- Office Financials Widget (Radone only) -->
-    <div id="office-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:20px;background:linear-gradient(135deg, rgba(37,99,235,0.1), rgba(59,130,246,0.05))">
+    <div id="office-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(37,99,235,0.1), rgba(59,130,246,0.05))">
       <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:14px">📊 Office Financials (This Month)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div id="office-fin-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
         <div>
           <div style="font-size:11px;color:#475569;margin-bottom:6px">Office Income</div>
           <div class="amount" style="font-size:20px;font-weight:700;color:#34d399" id="office-income">৳0</div>
@@ -202,9 +220,9 @@
     </div>
 
     <!-- Kurti Paradise Shop Summary Widget (Efty only) -->
-    <div id="shop-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:20px;background:linear-gradient(135deg, rgba(219,39,119,0.1), rgba(236,72,153,0.05))">
+    <div id="shop-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(219,39,119,0.1), rgba(236,72,153,0.05))">
       <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:14px">🧵 Kurti Paradise — Shop Business Summary (This Month)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px">
+      <div id="shop-fin-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
         <div>
           <div style="font-size:11px;color:#475569;margin-bottom:6px">Staff & Service Cost</div>
           <div class="amount" style="font-size:20px;font-weight:700;color:#f87171" id="shop-staff-cost">৳0</div>
@@ -225,25 +243,26 @@
     </div>
 
     <!-- Multi-Wallet Matrix Layout -->
-    <details class="glass panel-collapse" open style="border-radius:14px;padding:20px;margin-bottom:20px">
+    <details class="glass panel-collapse" open style="border-radius:14px;padding:20px;margin-bottom:16px">
       <summary style="font-size:13px;font-weight:600;color:#64748b"><span>💰 Multi-Currency & Deep Wallet Accounts Matrix</span><span class="chev">▶</span></summary>
       <div id="wallet-grid-wrapper" class="flex flex-col gap-3" style="margin-top:14px"></div>
     </details>
 
     <!-- Active Credit Cards Summary -->
-    <details id="dash-cc-area" class="glass panel-collapse" open style="display:none; margin-bottom:20px; border-radius:14px; padding:20px">
+    <details id="dash-cc-area" class="glass panel-collapse" open style="display:none; margin-bottom:16px; border-radius:14px; padding:20px">
       <summary style="font-size:13px;font-weight:600;color:#64748b"><span>💳 Active Credit Cards Summary</span><span class="chev">▶</span></summary>
       <div class="cc-grid" id="dash-cc-grid" style="margin-top:14px"></div>
+      <div class="cc-dots" id="dash-cc-dots"></div>
     </details>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="glass" style="border-radius:14px;padding:20px">
+    <div id="recent-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="glass" style="border-radius:14px;padding:20px;min-width:0">
         <div style="font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:14px">Recent Income</div>
-        <div id="recent-inc-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="recent-inc-list" style="display:flex;flex-direction:column;gap:4px"></div>
       </div>
-      <div class="glass" style="border-radius:14px;padding:20px">
+      <div class="glass" style="border-radius:14px;padding:20px;min-width:0">
         <div style="font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:14px">Recent Expenses</div>
-        <div id="recent-exp-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="recent-exp-list" style="display:flex;flex-direction:column;gap:4px"></div>
       </div>
     </div>
   </div>
@@ -303,6 +322,7 @@
       <button class="btn-s" id="btn-add-cc-pane">+ Add New Card</button>
     </div>
     <div class="cc-grid" id="main-cc-grid"></div>
+    <div class="cc-dots" id="main-cc-dots"></div>
     <div class="glass" style="border-radius:14px;padding:20px;max-width:480px;margin-top:20px">
       <div style="font-size:14px;font-weight:600;color:#3b82f6;margin-bottom:12px">💵 Quick Card Bill Payment (Auto-logs Expense)</div>
       <div style="display:flex;flex-direction:column;gap:12px">
@@ -679,7 +699,8 @@
   // trigger label + the menu of *other* profiles to pick from. ----
   function renderProfileDropdown() {
     const current = PROFILES.find(p => p.id === currentProfile);
-    document.getElementById('prof-dd-label').textContent = `${current.emoji} ${current.name}`;
+    document.getElementById('prof-dd-icon').textContent = current.emoji;
+    document.getElementById('prof-dd-label').textContent = current.name;
     document.getElementById('prof-dd-menu').innerHTML = PROFILES
       .filter(p => p.id !== currentProfile)
       .map(p => `<div class="prof-dd-item" data-prof="${p.id}">${p.emoji} ${p.name}</div>`)
@@ -844,10 +865,12 @@
       document.getElementById('dash-cc-grid').innerHTML = cards.map(buildCardHTML).join('');
       document.getElementById('main-cc-grid').innerHTML = cards.map(buildCardHTML).join('');
       document.getElementById('pay-cc-select').innerHTML = '<option value="">Select Card to Pay</option>' + cards.map(c => `<option value="${c.id}">${esc(c.card_name)} (Due: ৳${c.current_due})</option>`).join('');
+      setupCarouselDots('dash-cc-grid', 'dash-cc-dots');
+      setupCarouselDots('main-cc-grid', 'main-cc-dots');
     }
 
-    document.getElementById('recent-inc-list').innerHTML = mInc.slice(0,4).map(i => `<div class="row-hover" style="display:flex;justify-content:space-between;align-items:center"><span>${esc(i.source)}</span><span class="amount" style="color:var(--pos)">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</span></div>`).join('') || '<div style="color:#475569;font-size:13px">No entries yet</div>';
-    document.getElementById('recent-exp-list').innerHTML = mExp.slice(0,4).map(e => `<div class="row-hover" style="display:flex;justify-content:space-between;align-items:center"><span>${esc(e.description)}</span><span class="amount" style="color:var(--neg)">৳${parseFloat(e.amount||0).toLocaleString()}</span></div>`).join('') || '<div style="color:#475569;font-size:13px">No entries yet</div>';
+    document.getElementById('recent-inc-list').innerHTML = mInc.slice(0,4).map(i => `<div class="row-hover" style="display:flex;justify-content:space-between;align-items:center"><span class="row-name">${esc(i.source)}</span><span class="amount row-amt" style="color:var(--pos)">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</span></div>`).join('') || '<div style="color:#475569;font-size:13px">No entries yet</div>';
+    document.getElementById('recent-exp-list').innerHTML = mExp.slice(0,4).map(e => `<div class="row-hover" style="display:flex;justify-content:space-between;align-items:center"><span class="row-name">${esc(e.description)}</span><span class="amount row-amt" style="color:var(--neg)">৳${parseFloat(e.amount||0).toLocaleString()}</span></div>`).join('') || '<div style="color:#475569;font-size:13px">No entries yet</div>';
 
     const activeCats = isRadone ? RADONE_CATS : EFTY_CATS;
 
@@ -887,6 +910,25 @@
     try {
       renderAnalytics(mInc, mExpSpend, activeCats, getAmtBDT);
     } catch(err) { console.error("Chart render error:", err); }
+  }
+
+  // Mobile-only visual cue for the swipeable credit-card carousel: one dot
+  // per card, active dot follows scroll position. Purely cosmetic — no
+  // effect on cards/data, just makes the existing scroll-snap row read as
+  // an intentional carousel instead of a half-cut-off bug.
+  function setupCarouselDots(gridId, dotsId) {
+    const grid = document.getElementById(gridId), dots = document.getElementById(dotsId);
+    if (!grid || !dots) return;
+    const count = cards.length;
+    if (count <= 1) { dots.innerHTML = ''; return; }
+    dots.innerHTML = Array.from({ length: count }, (_, i) => `<span class="dot${i === 0 ? ' on' : ''}"></span>`).join('');
+    grid.onscroll = () => {
+      const cardEls = grid.children;
+      if (!cardEls.length) return;
+      const cardW = cardEls[0].getBoundingClientRect().width + 12; // + gap
+      const idx = Math.min(count - 1, Math.round(grid.scrollLeft / cardW));
+      dots.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i === idx));
+    };
   }
 
   function renderWallets(pInc, pExp) {
