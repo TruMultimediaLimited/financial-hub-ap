@@ -194,7 +194,7 @@
       </div>
     </div>
 
-    <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px">
+    <div id="kpi-grid" style="display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass dash-box" id="kpi-inc-card">
         <div class="dash-box-top">
           <div class="dash-box-label">Total Earnings</div>
@@ -220,7 +220,7 @@
     </div>
 
     <!-- Office / Personal Expense split (Radone only) -->
-    <div id="office-personal-grid" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
+    <div id="office-personal-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass dash-box">
         <div class="dash-box-top">
           <div class="dash-box-label">Office Expense</div>
@@ -238,7 +238,7 @@
     </div>
 
     <!-- Office Payment / Assets (Radone only) -->
-    <div id="office-payment-assets-grid" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
+    <div id="office-payment-assets-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass dash-box">
         <div class="dash-box-top">
           <div class="dash-box-label">Office Payment</div>
@@ -257,7 +257,7 @@
     </div>
 
     <!-- Kurti Paradise Shop Summary Widget (Efty only) -->
-    <div id="shop-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(219,39,119,0.1), rgba(236,72,153,0.05))">
+    <div id="shop-financials-widget" class="glass" style="display:none;border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(219,39,119,0.1), rgba(236,72,153,0.05))">
       <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:14px;display:flex;align-items:center;gap:6px"><span data-icon="store" data-icon-size="15" style="color:#DB2777"></span>Kurti Paradise — Shop Business Summary (This Month)</div>
       <div id="shop-fin-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
         <div>
@@ -285,7 +285,7 @@
          feed the Assets box above) but no longer writes any tiles
          anywhere. Recent Income/Expenses is Radone-only removed — Efty's
          is untouched, hers still shows below. -->
-    <div id="recent-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div id="recent-grid" style="display:none;grid-template-columns:1fr 1fr;gap:16px">
       <div class="glass" style="border-radius:14px;padding:20px;min-width:0">
         <div style="font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:14px">Recent Income</div>
         <div id="recent-inc-list" style="display:flex;flex-direction:column;gap:4px"></div>
@@ -306,7 +306,7 @@
       </div>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr><th>Date</th><th>Source / Client</th><th>Company Map</th><th>Project Name</th><th>Wallet Route</th><th style="text-align:right">Amount</th><th style="text-align:center">Actions</th></tr></thead>
+          <thead><tr><th style="white-space:nowrap">Date</th><th style="white-space:nowrap">Client</th><th style="text-align:right;white-space:nowrap">Amount</th><th style="text-align:center;white-space:nowrap">Details</th></tr></thead>
           <tbody id="inc-tbody"></tbody>
         </table>
       </div>
@@ -486,6 +486,21 @@
   </div>
 </div>
 
+<!-- INCOME/PAYMENT ROW DETAILS -->
+<div id="income-detail-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="font-size:16px;font-weight:700">Details</h3>
+      <button id="btn-close-income-detail" style="color:#475569"><span data-icon="x" data-icon-size="18"></span></button>
+    </div>
+    <div id="income-detail-body" style="display:flex;flex-direction:column;gap:10px;font-size:13px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button class="btn-e" id="income-detail-edit"><span data-icon="edit" data-icon-size="13"></span> Edit</button>
+      <button class="btn-d" id="income-detail-delete"><span data-icon="x" data-icon-size="13"></span> Delete</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast-wrap"></div>
 
 <script>
@@ -507,6 +522,20 @@
   // stray '<' or '"' in a name/description can't run as markup/script.
   function esc(str) {
     return String(str ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+  }
+
+  function isUSD(x) {
+    let noteTxt = (x.notes || '').toLowerCase();
+    let catTxt = (x.category_group || '').toLowerCase();
+    return noteTxt.includes('usd') || catTxt.includes('usd');
+  }
+
+  // Company/concern badge color — same mapping used in the income row/detail view.
+  function companyBadgeClass(comp) {
+    if (comp.includes('Multimedia')) return 'bg-blue-100 text-blue-700';
+    if (comp.includes('Truphoto')) return 'bg-teal-100 text-teal-700';
+    if (comp.includes('4R')) return 'bg-emerald-100 text-emerald-700';
+    return 'bg-purple-100 text-purple-700';
   }
 
   // ---- Minimal line-art icon set (matches the Tru ERP visual reference) ----
@@ -674,6 +703,8 @@
     document.getElementById('btn-add-debt').addEventListener('click', () => openAddModal('debt'));
     document.getElementById('btn-add-emi').addEventListener('click', () => openAddModal('emi'));
     document.getElementById('btn-close-modal').addEventListener('click', () => document.getElementById('modal').style.display='none');
+    document.getElementById('btn-close-income-detail').addEventListener('click', closeIncomeDetail);
+    document.getElementById('income-detail-modal').addEventListener('click', (ev) => { if (ev.target.id === 'income-detail-modal') closeIncomeDetail(); });
     document.getElementById('btn-submit-cc-pay').addEventListener('click', executeCardPayment);
     document.getElementById('month-sel').addEventListener('change', function() { selMonth = this.value; renderUI(); });
     document.getElementById('kpi-exp-card').addEventListener('click', () => goToSec('breakdown'));
@@ -766,7 +797,7 @@
       <div class="nav-link" data-sec="dashboard">${icon('grid')} Dashboard</div>
       <div class="nav-link" data-sec="income">${icon('wallet')} ${isRadone ? 'Payment' : 'Income Log'}</div>
       <div class="nav-link" data-sec="expenses">${icon('receipt')} Expenses Log</div>
-      <div class="nav-link" data-sec="breakdown">${icon('pie')} খরচের হিসাব</div>
+      <div class="nav-link" data-sec="breakdown">${icon('pie')} Breakdown</div>
       ${isRadone ? `<div class="nav-link" data-sec="creditcard">${icon('card')} Card</div><div class="nav-link" data-sec="debts">${icon('arrowDownTray')} Receivables</div><div class="nav-link" data-sec="debts">${icon('arrowUpTray')} Payables</div>` : ''}
       <div class="nav-link" data-sec="wealth">${icon('landmark')} ${isRadone ? 'Personal Assets' : 'Assets'}</div>
     `;
@@ -813,7 +844,7 @@
   const NAV_LABELS = {
     dashboard: { icon: 'grid', label: 'Dashboard' },
     expenses: { icon: 'receipt', label: 'Expenses' },
-    breakdown: { icon: 'pie', label: 'খরচের হিসাব' }
+    breakdown: { icon: 'pie', label: 'Breakdown' }
   };
 
   // Income's label follows the same Radone="Payment" / Efty="Income" split
@@ -876,12 +907,6 @@
 
     const mInc = pInc.filter(i => i.date && i.date.startsWith(selMonth));
     const mExp = pExp.filter(e => e.date && e.date.startsWith(selMonth));
-
-    const isUSD = (x) => {
-      let noteTxt = (x.notes || '').toLowerCase();
-      let catTxt = (x.category_group || '').toLowerCase();
-      return noteTxt.includes('usd') || catTxt.includes('usd');
-    };
 
     // USD entries live in their own USD wallets/KPIs and are never converted
     // into BDT, so they don't contribute to the BDT-denominated totals below.
@@ -1013,22 +1038,13 @@
     const activeCats = isRadone ? RADONE_CATS : EFTY_CATS;
 
     document.getElementById('inc-tbody').innerHTML = mInc.map(i => {
-      let comp = i.category_group || 'Personal';
-      let cBadge = 'bg-purple-100 text-purple-700';
-      if(comp.includes('Multimedia')) cBadge = 'bg-blue-100 text-blue-700';
-      if(comp.includes('Truphoto')) cBadge = 'bg-teal-100 text-teal-700';
-      if(comp.includes('4R')) cBadge = 'bg-emerald-100 text-emerald-700';
-
       return `<tr>
-        <td>${i.date}</td>
+        <td style="white-space:nowrap">${i.date}</td>
         <td><b>${esc(i.source)}</b></td>
-        <td><span class="badge ${cBadge}">${esc(comp)}</span></td>
-        <td><span class="text-amber-700 font-medium">${esc(i.project_tag) || '—'}</span></td>
-        <td><span class="badge bg-slate-100">${esc(i.notes)}</span></td>
-        <td style="text-align:right" class="amount text-emerald-700">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</td>
-        <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('income','${i.id}')">${icon('edit',13)} Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_income','${i.id}')">${icon('x',13)}</button></td>
+        <td style="text-align:right;white-space:nowrap" class="amount text-emerald-700">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</td>
+        <td style="text-align:center"><button class="btn-e" style="white-space:nowrap" onclick="showIncomeDetail('${i.id}')">${icon('receipt',13)} View Details</button></td>
       </tr>`
-    }).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No income records for this month</td></tr>';
+    }).join('') || '<tr><td colspan="4" style="text-align:center;color:#475569">No income records for this month</td></tr>';
 
     document.getElementById('exp-tbody').innerHTML = mExp.map(e => `<tr>
       <td>${e.date}</td>
@@ -1481,6 +1497,25 @@
     else if (type === 'card') item = cards.find(c=>c.id==id);
     buildForm(item);
   }
+
+  window.showIncomeDetail = function(id) {
+    const i = income.find(x => x.id == id);
+    if (!i) return;
+    const comp = i.category_group || 'Personal';
+    document.getElementById('income-detail-body').innerHTML = `
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Date</span><b>${esc(i.date)}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Client</span><b>${esc(i.source)}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Project</span><span class="text-amber-700 font-medium">${esc(i.project_tag) || '—'}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Concern</span><span class="badge ${companyBadgeClass(comp)}">${esc(comp)}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Wallet</span><span class="badge bg-slate-100">${esc(i.notes)}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Amount</span><span class="amount text-emerald-700">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</span></div>
+    `;
+    document.getElementById('income-detail-edit').onclick = () => { closeIncomeDetail(); openEditModal('income', id); };
+    document.getElementById('income-detail-delete').onclick = () => { closeIncomeDetail(); deleteMasterRecord('hub_income', id); };
+    document.getElementById('income-detail-modal').style.display = 'flex';
+  }
+
+  function closeIncomeDetail() { document.getElementById('income-detail-modal').style.display = 'none'; }
 
   function buildForm(item=null) {
     const fBody = document.getElementById('form-body'), isRadone = currentProfile === 'radone';
