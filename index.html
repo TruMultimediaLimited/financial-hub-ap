@@ -41,6 +41,12 @@
     .btn-p:disabled,.btn-s:disabled{opacity:.5;cursor:not-allowed}
     .btn-d{background:var(--neg-dim);color:var(--neg);border:1px solid #FECACA;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px}
     .btn-e{background:var(--acc-dim);color:var(--acc);border:1px solid #BFDBFE;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+    .exp-view-btn{border-radius:12px;padding:12px 10px;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+    /* Single toggle box for the Payment log's concern filter — one <select>
+       instead of a row of side-by-side chips, matching .month-sel-wrap. */
+    .concern-sel-wrap{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 12px;flex:1;min-width:0}
+    .concern-sel-wrap:hover{border-color:var(--acc)}
+    #income-concern-select{flex:1;min-width:0;width:auto!important;background:transparent!important;border:none!important;padding:0!important;min-height:0;font-size:12.5px!important;font-weight:600;color:var(--acc)!important;text-overflow:ellipsis}
     .nav-link{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--text-muted)}
     .nav-link.on{background:var(--acc-dim);color:var(--acc);font-weight:600}
     .sec{display:none}
@@ -60,8 +66,6 @@
     .cc-dots .dot{width:6px;height:6px;border-radius:50%;background:#CBD5E1;transition:background .15s,transform .15s}
     .cc-dots .dot.on{background:var(--acc);transform:scale(1.3)}
     .chip{width:34px;height:26px;background:linear-gradient(135deg,#c9961a,#f0c040);border-radius:4px;margin-bottom:12px}
-    details.bd-cat summary{cursor:pointer;list-style:none}
-    details.bd-cat summary::-webkit-details-marker{display:none}
     .clickable{cursor:pointer}
     #conn-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#FEE2E2;color:#991B1B;border-bottom:1px solid #FECACA;text-align:center;font-size:13px;padding:8px}
     #login-gate{position:fixed;inset:0;z-index:20000;background:var(--surface-0);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -194,7 +198,7 @@
       </div>
     </div>
 
-    <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px">
+    <div id="kpi-grid" style="display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass dash-box" id="kpi-inc-card">
         <div class="dash-box-top">
           <div class="dash-box-label">Total Earnings</div>
@@ -220,7 +224,7 @@
     </div>
 
     <!-- Office / Personal Expense split (Radone only) -->
-    <div id="office-personal-grid" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
+    <div id="office-personal-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass dash-box">
         <div class="dash-box-top">
           <div class="dash-box-label">Office Expense</div>
@@ -238,7 +242,7 @@
     </div>
 
     <!-- Office Payment / Assets (Radone only) -->
-    <div id="office-payment-assets-grid" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
+    <div id="office-payment-assets-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass dash-box">
         <div class="dash-box-top">
           <div class="dash-box-label">Office Payment</div>
@@ -257,7 +261,7 @@
     </div>
 
     <!-- Kurti Paradise Shop Summary Widget (Efty only) -->
-    <div id="shop-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(219,39,119,0.1), rgba(236,72,153,0.05))">
+    <div id="shop-financials-widget" class="glass" style="display:none;border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(219,39,119,0.1), rgba(236,72,153,0.05))">
       <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:14px;display:flex;align-items:center;gap:6px"><span data-icon="store" data-icon-size="15" style="color:#DB2777"></span>Kurti Paradise — Shop Business Summary (This Month)</div>
       <div id="shop-fin-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
         <div>
@@ -285,7 +289,7 @@
          feed the Assets box above) but no longer writes any tiles
          anywhere. Recent Income/Expenses is Radone-only removed — Efty's
          is untouched, hers still shows below. -->
-    <div id="recent-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div id="recent-grid" style="display:none;grid-template-columns:1fr 1fr;gap:16px">
       <div class="glass" style="border-radius:14px;padding:20px;min-width:0">
         <div style="font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:14px">Recent Income</div>
         <div id="recent-inc-list" style="display:flex;flex-direction:column;gap:4px"></div>
@@ -299,49 +303,60 @@
 
   <!-- INCOME LOG SEC -->
   <div id="sec-income" class="sec">
-    <div class="glass" style="border-radius:14px;overflow:hidden">
-      <div style="padding:16px;border-bottom:1px solid #0f172a;display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <span style="font-weight:600" id="income-sec-title">Daily Income Records</span>
-        <button class="btn-s" id="btn-add-inc-page">+ Income</button>
+    <div class="glass" style="border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-weight:600" id="income-sec-title">Records</span>
+      <div class="concern-sel-wrap" id="income-concern-wrap" style="display:none">
+        <span data-icon="building" data-icon-size="14" style="color:var(--acc);flex-shrink:0"></span>
+        <select id="income-concern-select">
+          <option value="all">All Concern</option>
+          <option value="Multimedia">Tru Multimedia Limited</option>
+          <option value="Truphoto">Truphoto Studio</option>
+          <option value="4R">4R Studio</option>
+        </select>
       </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr><th>Date</th><th>Source / Client</th><th>Company Map</th><th>Project Name</th><th>Wallet Route</th><th style="text-align:right">Amount</th><th style="text-align:center">Actions</th></tr></thead>
-          <tbody id="inc-tbody"></tbody>
-        </table>
-      </div>
+      <button class="btn-s" id="btn-add-inc-page" style="flex-shrink:0">+ Income</button>
     </div>
+    <div id="inc-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- EXPENSES LOG SEC -->
   <div id="sec-expenses" class="sec">
-    <div class="glass" style="border-radius:14px;overflow:hidden">
-      <div style="padding:16px;border-bottom:1px solid #0f172a;display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <span style="font-weight:600">Daily Expenses Records</span>
-        <button class="btn-p" id="btn-add-exp-page">+ Expense</button>
-      </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr><th>Date</th><th>Description</th><th>Project Name</th><th>Category</th><th>Wallet Method</th><th style="text-align:right">Amount (৳)</th><th style="text-align:center">Actions</th></tr></thead>
-          <tbody id="exp-tbody"></tbody>
-        </table>
-      </div>
+    <div class="glass" id="expense-header-default" style="border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-weight:600">Records</span>
+      <button class="btn-s" id="btn-add-exp-page">+ Expense</button>
     </div>
+    <div id="expense-header-split" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <button id="btn-exp-personal" class="exp-view-btn">+ Personal Expense</button>
+      <button id="btn-exp-office" class="exp-view-btn">+ Office Expense</button>
+    </div>
+    <div id="exp-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- EXPENSE BREAKDOWN SEC -->
   <div id="sec-breakdown" class="sec">
-    <div class="glass" style="border-radius:14px;padding:20px;margin-bottom:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px">
-        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="receipt" data-icon-size="16" style="color:var(--neg)"></span>Total Expense Breakdown (This Month)</div>
+    <div style="border-radius:18px;padding:22px;margin-bottom:16px;background:linear-gradient(135deg,#0B1220,#1E293B);color:#fff;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0">
+          <span style="background:rgba(59,130,246,.22);color:#60A5FA;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0" data-icon="pie" data-icon-size="20"></span>
+          <div style="min-width:0">
+            <div style="font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Financial Breakdown</div>
+            <div style="font-size:11.5px;color:#94A3B8;margin-top:2px">এই মাসের মোট খরচের হিসাব</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;white-space:nowrap" id="breakdown-hero-month"></div>
+      </div>
+      <div id="breakdown-hero-body" style="margin-top:22px"></div>
+    </div>
+    <div class="glass" id="breakdown-personal-panel" style="border-radius:14px;padding:20px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="receipt" data-icon-size="16" style="color:var(--neg)"></span>Personal Breakdown</div>
         <div class="amount" style="font-size:18px;font-weight:700;color:var(--neg)" id="breakdown-total-amt">৳0</div>
       </div>
-      <div style="font-size:11.5px;color:#475569;margin-bottom:14px">ক্যাটাগরিতে ক্লিক করলে ভেতরের খরচগুলো দেখা যাবে</div>
       <div id="breakdown-total-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
-    <div class="glass" id="breakdown-office-panel" style="border-radius:14px;padding:20px;background:linear-gradient(135deg, rgba(37,99,235,0.1), rgba(59,130,246,0.05))">
+    <div class="glass" id="breakdown-office-panel" style="border-radius:14px;padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
-        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="building" data-icon-size="16" style="color:var(--acc)"></span>Office Expense Breakdown (This Month)</div>
+        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="building" data-icon-size="16" style="color:var(--neg)"></span>Office Breakdown</div>
         <div class="amount" style="font-size:18px;font-weight:700;color:var(--neg)" id="breakdown-office-amt">৳0</div>
       </div>
       <div id="breakdown-office-list" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -486,6 +501,47 @@
   </div>
 </div>
 
+<!-- INCOME/PAYMENT ROW DETAILS -->
+<div id="income-detail-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="font-size:16px;font-weight:700">Details</h3>
+      <button id="btn-close-income-detail" style="color:#475569"><span data-icon="x" data-icon-size="18"></span></button>
+    </div>
+    <div id="income-detail-body" style="display:flex;flex-direction:column;gap:10px;font-size:13px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button class="btn-e" id="income-detail-edit"><span data-icon="edit" data-icon-size="13"></span> Edit</button>
+      <button class="btn-d" id="income-detail-delete"><span data-icon="x" data-icon-size="13"></span> Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPENSE ROW DETAILS -->
+<div id="expense-detail-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="font-size:16px;font-weight:700">Details</h3>
+      <button id="btn-close-expense-detail" style="color:#475569"><span data-icon="x" data-icon-size="18"></span></button>
+    </div>
+    <div id="expense-detail-body" style="display:flex;flex-direction:column;gap:10px;font-size:13px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button class="btn-e" id="expense-detail-edit"><span data-icon="edit" data-icon-size="13"></span> Edit</button>
+      <button class="btn-d" id="expense-detail-delete"><span data-icon="x" data-icon-size="13"></span> Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- BREAKDOWN CATEGORY TRANSACTIONS -->
+<div id="category-detail-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="font-size:16px;font-weight:700" id="category-detail-title">Category</h3>
+      <button id="btn-close-category-detail" style="color:#475569"><span data-icon="x" data-icon-size="18"></span></button>
+    </div>
+    <div id="category-detail-list" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <div id="toast-wrap"></div>
 
 <script>
@@ -501,12 +557,34 @@
   let currentProfile = 'radone';
   let income = [], expenses = [], cards = [], debts = [], emis = [];
   let selMonth = '', modalType = 'income', editId = null, activeSec = 'dashboard';
+  // Which of the two Radone breakdown panels the hero tiles have selected —
+  // keeps the page from showing both stacked/cluttered at once.
+  let breakdownView = 'personal';
+  // Same idea for the Expenses log's two type buttons, and the Payment
+  // log's concern filter chips.
+  let expenseView = 'personal';
+  let incomeConcernFilter = 'all';
+  let lastMInc = [], lastMExp = [];
   let charts = {};
 
   // Escapes free-text DB fields before they're dropped into innerHTML, so a
   // stray '<' or '"' in a name/description can't run as markup/script.
   function esc(str) {
     return String(str ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+  }
+
+  function isUSD(x) {
+    let noteTxt = (x.notes || '').toLowerCase();
+    let catTxt = (x.category_group || '').toLowerCase();
+    return noteTxt.includes('usd') || catTxt.includes('usd');
+  }
+
+  // Company/concern badge color — same mapping used in the income row/detail view.
+  function companyBadgeClass(comp) {
+    if (comp.includes('Multimedia')) return 'bg-blue-100 text-blue-700';
+    if (comp.includes('Truphoto')) return 'bg-teal-100 text-teal-700';
+    if (comp.includes('4R')) return 'bg-emerald-100 text-emerald-700';
+    return 'bg-purple-100 text-purple-700';
   }
 
   // ---- Minimal line-art icon set (matches the Tru ERP visual reference) ----
@@ -669,11 +747,26 @@
     document.getElementById('more-sheet').addEventListener('click', (ev) => { if (ev.target.id === 'more-sheet') closeMoreSheet(); });
     document.getElementById('btn-add-inc-page').addEventListener('click', () => openAddModal('income'));
     document.getElementById('btn-add-exp-page').addEventListener('click', () => openAddModal('expense'));
+    document.getElementById('btn-exp-personal').addEventListener('click', () => selectExpenseView('personal'));
+    document.getElementById('btn-exp-office').addEventListener('click', () => selectExpenseView('office'));
+    // Radone's income "concern" — which of his agency clients a payment
+    // maps to — reuses the same category_group field/matching as
+    // companyBadgeClass.
+    document.getElementById('income-concern-select').addEventListener('change', function() {
+      incomeConcernFilter = this.value;
+      renderIncomeList();
+    });
+    document.getElementById('btn-close-category-detail').addEventListener('click', closeCategoryDetail);
+    document.getElementById('category-detail-modal').addEventListener('click', (ev) => { if (ev.target.id === 'category-detail-modal') closeCategoryDetail(); });
     document.getElementById('dash-assets-card').addEventListener('click', () => goToSec('wealth'));
     document.getElementById('btn-add-cc-pane').addEventListener('click', () => openAddModal('card'));
     document.getElementById('btn-add-debt').addEventListener('click', () => openAddModal('debt'));
     document.getElementById('btn-add-emi').addEventListener('click', () => openAddModal('emi'));
     document.getElementById('btn-close-modal').addEventListener('click', () => document.getElementById('modal').style.display='none');
+    document.getElementById('btn-close-income-detail').addEventListener('click', closeIncomeDetail);
+    document.getElementById('income-detail-modal').addEventListener('click', (ev) => { if (ev.target.id === 'income-detail-modal') closeIncomeDetail(); });
+    document.getElementById('btn-close-expense-detail').addEventListener('click', closeExpenseDetail);
+    document.getElementById('expense-detail-modal').addEventListener('click', (ev) => { if (ev.target.id === 'expense-detail-modal') closeExpenseDetail(); });
     document.getElementById('btn-submit-cc-pay').addEventListener('click', executeCardPayment);
     document.getElementById('month-sel').addEventListener('change', function() { selMonth = this.value; renderUI(); });
     document.getElementById('kpi-exp-card').addEventListener('click', () => goToSec('breakdown'));
@@ -766,7 +859,7 @@
       <div class="nav-link" data-sec="dashboard">${icon('grid')} Dashboard</div>
       <div class="nav-link" data-sec="income">${icon('wallet')} ${isRadone ? 'Payment' : 'Income Log'}</div>
       <div class="nav-link" data-sec="expenses">${icon('receipt')} Expenses Log</div>
-      <div class="nav-link" data-sec="breakdown">${icon('pie')} খরচের হিসাব</div>
+      <div class="nav-link" data-sec="breakdown">${icon('pie')} Breakdown</div>
       ${isRadone ? `<div class="nav-link" data-sec="creditcard">${icon('card')} Card</div><div class="nav-link" data-sec="debts">${icon('arrowDownTray')} Receivables</div><div class="nav-link" data-sec="debts">${icon('arrowUpTray')} Payables</div>` : ''}
       <div class="nav-link" data-sec="wealth">${icon('landmark')} ${isRadone ? 'Personal Assets' : 'Assets'}</div>
     `;
@@ -813,7 +906,7 @@
   const NAV_LABELS = {
     dashboard: { icon: 'grid', label: 'Dashboard' },
     expenses: { icon: 'receipt', label: 'Expenses' },
-    breakdown: { icon: 'pie', label: 'খরচের হিসাব' }
+    breakdown: { icon: 'pie', label: 'Breakdown' }
   };
 
   // Income's label follows the same Radone="Payment" / Efty="Income" split
@@ -876,12 +969,8 @@
 
     const mInc = pInc.filter(i => i.date && i.date.startsWith(selMonth));
     const mExp = pExp.filter(e => e.date && e.date.startsWith(selMonth));
-
-    const isUSD = (x) => {
-      let noteTxt = (x.notes || '').toLowerCase();
-      let catTxt = (x.category_group || '').toLowerCase();
-      return noteTxt.includes('usd') || catTxt.includes('usd');
-    };
+    lastMInc = mInc;
+    lastMExp = mExp;
 
     // USD entries live in their own USD wallets/KPIs and are never converted
     // into BDT, so they don't contribute to the BDT-denominated totals below.
@@ -916,7 +1005,6 @@
     // just not framed as income). Efty's Kurti Paradise sales keep the
     // "Income" wording since that's a real business income stream for her.
     document.getElementById('btn-add-inc-page').textContent = isRadone ? '+ Payment' : '+ Income';
-    document.getElementById('income-sec-title').textContent = isRadone ? 'Daily Payment Records' : 'Daily Income Records';
 
     // Office/Personal Expense split + Office Payment + Assets (Radone
     // only) — plain totals, no profit/comparison math, same spirit as the
@@ -1012,35 +1100,25 @@
 
     const activeCats = isRadone ? RADONE_CATS : EFTY_CATS;
 
-    document.getElementById('inc-tbody').innerHTML = mInc.map(i => {
-      let comp = i.category_group || 'Personal';
-      let cBadge = 'bg-purple-100 text-purple-700';
-      if(comp.includes('Multimedia')) cBadge = 'bg-blue-100 text-blue-700';
-      if(comp.includes('Truphoto')) cBadge = 'bg-teal-100 text-teal-700';
-      if(comp.includes('4R')) cBadge = 'bg-emerald-100 text-emerald-700';
+    // Concern filter (Payment log) and the Personal/Office split (Expenses
+    // log) are Radone-only concepts — Efty keeps the plain header/list.
+    document.getElementById('income-sec-title').style.display = isRadone ? 'none' : 'block';
+    document.getElementById('income-concern-wrap').style.display = isRadone ? 'flex' : 'none';
+    document.getElementById('expense-header-default').style.display = isRadone ? 'none' : 'flex';
+    document.getElementById('expense-header-split').style.display = isRadone ? 'grid' : 'none';
+    if (isRadone) {
+      document.getElementById('income-concern-select').value = incomeConcernFilter;
+      applyExpenseViewButtons();
+    }
 
-      return `<tr>
-        <td>${i.date}</td>
-        <td><b>${esc(i.source)}</b></td>
-        <td><span class="badge ${cBadge}">${esc(comp)}</span></td>
-        <td><span class="text-amber-700 font-medium">${esc(i.project_tag) || '—'}</span></td>
-        <td><span class="badge bg-slate-100">${esc(i.notes)}</span></td>
-        <td style="text-align:right" class="amount text-emerald-700">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</td>
-        <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('income','${i.id}')">${icon('edit',13)} Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_income','${i.id}')">${icon('x',13)}</button></td>
-      </tr>`
-    }).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No income records for this month</td></tr>';
+    renderIncomeList();
+    renderExpenseList();
 
-    document.getElementById('exp-tbody').innerHTML = mExp.map(e => `<tr>
-      <td>${e.date}</td>
-      <td><b>${esc(e.description)}</b></td>
-      <td><span class="text-amber-700 font-medium">${esc(e.project_tag) || '—'}</span></td>
-      <td><span class="badge bg-slate-100">${esc(activeCats[e.category]||e.category)}</span>${isTransfer(e) ? ' <span class="badge bg-blue-100 text-blue-700" title="খরচের টোটালে গোনা হয় না — কার্ডের বিল শোধ">Transfer</span>' : ''}</td>
-      <td><span class="text-xs text-amber-700">${esc(e.payment_method)}</span></td>
-      <td style="text-align:right" class="amount text-red-700">৳${parseFloat(e.amount||0).toLocaleString()}</td>
-      <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('expense','${e.id}')">${icon('edit',13)} Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_expenses','${e.id}')">${icon('x',13)}</button></td>
-    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No expense records for this month</td></tr>';
-
-    renderBreakdown(mExpSpend, activeCats, getAmtBDT);
+    const [selY, selM] = selMonth.split('-').map(Number);
+    const prevMonthDate = new Date(selY, selM - 2, 1);
+    const prevMonthStr = prevMonthDate.getFullYear() + '-' + String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+    const prevExpTotal = pExp.filter(e => e.date && e.date.startsWith(prevMonthStr) && !isTransfer(e)).reduce((s, e) => s + getAmtBDT(e), 0);
+    renderBreakdown(mExpSpend, activeCats, getAmtBDT, prevExpTotal);
     renderDebtsPanel();
     if (isRadone) renderEmiPanel();
     renderAssetsStatement(income, expenses);
@@ -1048,6 +1126,58 @@
     try {
       renderAnalytics(mInc, mExpSpend, activeCats, getAmtBDT);
     } catch(err) { console.error("Chart render error:", err); }
+  }
+
+  function renderIncomeList() {
+    const filtered = incomeConcernFilter === 'all' ? lastMInc : lastMInc.filter(i => (i.category_group || 'Personal').includes(incomeConcernFilter));
+    document.getElementById('inc-list').innerHTML = filtered.map(i => {
+      const c = concernColor(i.category_group);
+      return `
+      <div style="background:${c.bg};border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
+        <span style="grid-row:1 / 3;background:${c.ring};color:${c.text};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">${icon('wallet',16)}</span>
+        <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;color:var(--text)">${esc(i.source)}</div>
+        <div class="amount" style="font-weight:700;font-size:14px;color:${c.text};text-align:right;white-space:nowrap">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</div>
+        <div style="font-size:11.5px;color:var(--text-muted)">${i.date}</div>
+        <button style="background:${c.ring};color:${c.text};border:none;border-radius:100px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;justify-self:end" onclick="showIncomeDetail('${i.id}')">View Details</button>
+      </div>`;
+    }).join('') || '<div style="text-align:center;color:#475569;padding:20px 0">No income records for this month</div>';
+  }
+
+  // Radone-only Personal/Office split — matches the same OFFICE_EXP_CATS
+  // used by the dashboard and Breakdown page, so all three stay in sync.
+  function applyExpenseViewButtons() {
+    const personalOn = expenseView === 'personal';
+    const pBtn = document.getElementById('btn-exp-personal'), oBtn = document.getElementById('btn-exp-office');
+    pBtn.style.background = personalOn ? 'var(--pos-dim)' : '#fff';
+    pBtn.style.borderColor = personalOn ? 'var(--pos)' : 'var(--border)';
+    pBtn.style.color = personalOn ? 'var(--pos)' : 'var(--text)';
+    oBtn.style.background = !personalOn ? 'var(--acc-dim)' : '#fff';
+    oBtn.style.borderColor = !personalOn ? 'var(--acc)' : 'var(--border)';
+    oBtn.style.color = !personalOn ? 'var(--acc)' : 'var(--text)';
+  }
+
+  function selectExpenseView(type) {
+    expenseView = type;
+    applyExpenseViewButtons();
+    renderExpenseList();
+    openAddModal('expense');
+  }
+
+  function renderExpenseList() {
+    const isRadone = currentProfile === 'radone';
+    const activeCats = isRadone ? RADONE_CATS : EFTY_CATS;
+    const filtered = isRadone ? lastMExp.filter(e => OFFICE_EXP_CATS.includes(e.category) === (expenseView === 'office')) : lastMExp;
+    document.getElementById('exp-list').innerHTML = filtered.map(e => {
+      const c = categoryColor(e.category || 'misc', activeCats);
+      return `
+      <div style="background:${c.bg};border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
+        <span style="grid-row:1 / 3;background:${c.ring};color:${c.text};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">${icon('receipt',16)}</span>
+        <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;color:var(--text)">${esc(e.description)}</div>
+        <div class="amount" style="font-weight:700;font-size:14px;color:${c.text};text-align:right;white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</div>
+        <div style="font-size:11.5px;color:var(--text-muted)">${e.date}</div>
+        <button style="background:${c.ring};color:${c.text};border:none;border-radius:100px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;justify-self:end" onclick="showExpenseDetail('${e.id}')">View Details</button>
+      </div>`;
+    }).join('') || '<div style="text-align:center;color:#475569;padding:20px 0">No expense records for this month</div>';
   }
 
   // Mobile-only visual cue for the swipeable credit-card carousel: one dot
@@ -1369,7 +1499,40 @@
   // shows the category's total, share of grandTotal, and a bar; opening it
   // reveals the individual entries. Used by both breakdown panels so their
   // rendering can't drift apart.
-  function buildBreakdownHTML(expList, activeCats, getAmtBDT, grandTotal, openAll = false) {
+  // Rotating pastel palette so each category card gets its own light color
+  // instead of one flat gray — cycles if there are more categories than colors.
+  // Inline hex (not Tailwind utility classes) so these render even if the
+  // Tailwind CDN script is slow/blocked on the viewer's network.
+  const CAT_COLORS = [
+    { bg: '#EFF6FF', ring: '#DBEAFE', text: '#1D4ED8', bar: '#3B82F6' },
+    { bg: '#ECFDF5', ring: '#D1FAE5', text: '#047857', bar: '#10B981' },
+    { bg: '#FEF2F2', ring: '#FEE2E2', text: '#B91C1C', bar: '#EF4444' },
+    { bg: '#FFFBEB', ring: '#FEF3C7', text: '#B45309', bar: '#F59E0B' },
+    { bg: '#FAF5FF', ring: '#F3E8FF', text: '#7E22CE', bar: '#A855F7' },
+    { bg: '#FDF2F8', ring: '#FCE7F3', text: '#BE185D', bar: '#EC4899' },
+    { bg: '#F0FDFA', ring: '#CCFBF1', text: '#0F766E', bar: '#14B8A6' },
+    { bg: '#EEF2FF', ring: '#E0E7FF', text: '#4338CA', bar: '#6366F1' }
+  ];
+
+  // Deterministic (not sort-order dependent) category → color, so a
+  // category's color stays fixed across renders and matches everywhere
+  // it appears: Breakdown cards, the hero ring, and the Expenses log cards.
+  function categoryColor(catKey, activeCats) {
+    const keys = Object.keys(activeCats);
+    const idx = keys.indexOf(catKey);
+    return CAT_COLORS[(idx >= 0 ? idx : 0) % CAT_COLORS.length];
+  }
+
+  // Same idea for the Payment log's concern (category_group), shared with
+  // the concern <select> filter's options.
+  const CONCERN_KEYS = ['Personal', 'Multimedia', 'Truphoto', '4R'];
+  function concernColor(categoryGroup) {
+    const comp = categoryGroup || 'Personal';
+    const key = CONCERN_KEYS.find(k => k !== 'Personal' && comp.includes(k)) || 'Personal';
+    return CAT_COLORS[CONCERN_KEYS.indexOf(key) % CAT_COLORS.length];
+  }
+
+  function groupByCategory(expList, getAmtBDT) {
     const groups = {};
     expList.forEach(e => {
       const key = e.category || 'misc';
@@ -1377,51 +1540,178 @@
       groups[key].total += getAmtBDT(e);
       groups[key].entries.push(e);
     });
-    const sorted = Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
+    return Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
+  }
+
+  // Multi-segment ring (one arc per category, colored to match its card
+  // below) for the Breakdown hero card, plus the largest category's share
+  // for the "সর্বোচ্চ" center label.
+  function buildExpenseRing(sorted, grandTotal, activeCats) {
+    const size = 96, stroke = 11, r = (size - stroke) / 2, c = 2 * Math.PI * r;
+    if (!sorted.length || grandTotal <= 0) {
+      return { svg: `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="${stroke}"/></svg>`, maxPct: 0 };
+    }
+    let offset = 0;
+    const arcs = sorted.map(([cat, g]) => {
+      const pct = (g.total / grandTotal) * 100;
+      const color = categoryColor(cat, activeCats).bar;
+      const len = (pct / 100) * c;
+      const gap = sorted.length > 1 ? Math.min(2, len / 2) : 0;
+      const dash = `${Math.max(0, len - gap)} ${c - len + gap}`;
+      const rotate = (offset / c) * 360 - 90;
+      offset += len;
+      return `<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-dasharray="${dash}" stroke-linecap="round" transform="rotate(${rotate} ${size/2} ${size/2})"/>`;
+    }).join('');
+    const maxPct = (sorted[0][1].total / grandTotal) * 100;
+    const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="${stroke}"/>${arcs}</svg>`;
+    return { svg, maxPct };
+  }
+
+  function formatMonthLabel(ym) {
+    const [y, m] = ym.split('-').map(Number);
+    return new Date(y, m - 1, 1).toLocaleString('en', { month: 'short', year: 'numeric' });
+  }
+
+  // Simplified category card: icon + name (row 1, left) + total (row 1,
+  // right), latest transaction date (row 2, left) + View Details (row 2,
+  // right) — same 4-field grid as the Payment/Expense record cards.
+  // View Details opens a modal listing every transaction in that category.
+  function buildBreakdownHTML(expList, activeCats, getAmtBDT) {
+    const sorted = groupByCategory(expList, getAmtBDT);
     if (!sorted.length) return '<div style="color:#475569;font-size:13px">No expense records for this month</div>';
 
     return sorted.map(([cat, g]) => {
-      const pct = grandTotal > 0 ? (g.total / grandTotal) * 100 : 0;
-      const rows = g.entries.map(e => `
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid rgba(30,41,59,.7);font-size:12.5px">
-          <span style="color:#64748b;white-space:nowrap">${e.date || ''}</span>
-          <span style="flex:1;color:#334155">${esc(e.description)}${e.project_tag ? ` <span style="color:var(--warn);font-size:11px">· ${esc(e.project_tag)}</span>` : ''}</span>
-          <span style="color:#64748b;font-size:11px;white-space:nowrap">${esc(e.payment_method)}</span>
-          <span class="amount text-red-700" style="white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</span>
-        </div>`).join('');
+      const c = categoryColor(cat, activeCats);
+      // Category labels are "<emoji> <text>" (see RADONE_CATS/EFTY_CATS) —
+      // split the emoji out to use as the card's icon badge.
+      const label = activeCats[cat] || cat;
+      const spaceIdx = label.indexOf(' ');
+      const catEmoji = spaceIdx > -1 ? label.slice(0, spaceIdx) : '📦';
+      const catText = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
+      const latestDate = g.entries.reduce((max, e) => (e.date && e.date > max ? e.date : max), g.entries[0].date || '');
       return `
-        <details class="bd-cat" style="background:#0f172a;border-radius:10px;overflow:hidden" ${openAll ? 'open' : ''}>
-          <summary style="padding:10px 12px">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-              <span style="font-size:13px;color:#334155">${esc(activeCats[cat] || cat)} <span style="color:#64748b;font-size:11.5px">(${g.entries.length})</span></span>
-              <span style="display:flex;align-items:center;gap:10px">
-                <span style="color:#64748b;font-size:11.5px">${pct.toFixed(1)}%</span>
-                <span class="amount" style="font-weight:700;color:var(--neg)">৳${g.total.toLocaleString()}</span>
-              </span>
-            </div>
-            <div style="height:5px;background:var(--border);border-radius:100px;margin-top:8px"><div style="height:100%;width:${Math.min(100, pct)}%;background:linear-gradient(90deg,#DC2626,#F87171);border-radius:100px"></div></div>
-          </summary>
-          <div style="padding-bottom:4px">${rows}</div>
-        </details>`;
+        <div style="background:${c.bg};border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
+          <span style="grid-row:1 / 3;background:${c.ring};width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${catEmoji}</span>
+          <div style="font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(catText)}</div>
+          <div class="amount" style="font-weight:700;font-size:14px;color:${c.text};text-align:right;white-space:nowrap">৳${g.total.toLocaleString()}</div>
+          <div style="font-size:11.5px;color:var(--text-muted)">${latestDate}</div>
+          <button style="background:${c.ring};color:${c.text};border:none;border-radius:100px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;justify-self:end" onclick="showCategoryDetail('${cat}')">View Details</button>
+        </div>`;
     }).join('');
   }
 
-  function renderBreakdown(mExp, activeCats, getAmtBDT) {
+  window.showCategoryDetail = function(catKey) {
+    const cats = currentProfile === 'radone' ? RADONE_CATS : EFTY_CATS;
+    const label = cats[catKey] || catKey;
+    const spaceIdx = label.indexOf(' ');
+    const catText = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
+    const entries = lastMExp.filter(e => (e.category || 'misc') === catKey).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    document.getElementById('category-detail-title').textContent = catText;
+    document.getElementById('category-detail-list').innerHTML = entries.map(e => `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--surface-2)">
+        <div style="min-width:0">
+          <div style="font-weight:600;font-size:12.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.description)}</div>
+          <div style="font-size:10.5px;color:var(--text-muted);margin-top:1px">${e.date || ''}</div>
+        </div>
+        <div class="amount" style="font-size:12.5px;font-weight:700;color:var(--neg);flex-shrink:0;white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</div>
+      </div>`
+    ).join('') || '<div style="text-align:center;color:#475569;font-size:12.5px;padding:10px 0">No entries</div>';
+    document.getElementById('category-detail-modal').style.display = 'flex';
+  }
+
+  function closeCategoryDetail() { document.getElementById('category-detail-modal').style.display = 'none'; }
+
+  // Cache of the hero's last computed figures so setBreakdownView() can
+  // redraw the tiles/ring on a click without recomputing from the data.
+  let breakdownHeroData = null;
+
+  function renderBreakdown(mExp, activeCats, getAmtBDT, prevTotal) {
     const isRadone = currentProfile === 'radone';
     const total = mExp.reduce((s, e) => s + getAmtBDT(e), 0);
     document.getElementById('breakdown-total-amt').textContent = '৳' + total.toLocaleString();
-    document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(mExp, activeCats, getAmtBDT, total);
+    document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(mExp, activeCats, getAmtBDT);
+
+    document.getElementById('breakdown-hero-month').textContent = formatMonthLabel(selMonth);
 
     // Office breakdown mirrors the dashboard Office Financials widget:
     // Radone only, same OFFICE_EXP_CATS filter, entries opened by default
     // since there are only a few office categories.
-    document.getElementById('breakdown-office-panel').style.display = isRadone ? 'block' : 'none';
+    let officeTotal = 0;
     if (isRadone) {
       const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category));
-      const officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
+      officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
       document.getElementById('breakdown-office-amt').textContent = '৳' + officeTotal.toLocaleString();
-      document.getElementById('breakdown-office-list').innerHTML = buildBreakdownHTML(officeExp, activeCats, getAmtBDT, officeTotal, true);
+      document.getElementById('breakdown-office-list').innerHTML = buildBreakdownHTML(officeExp, activeCats, getAmtBDT);
     }
+
+    breakdownHeroData = { isRadone, total, officeTotal, personalTotal: total - officeTotal, prevTotal, sortedCats: groupByCategory(mExp, getAmtBDT), activeCats };
+    renderBreakdownHero();
+    applyBreakdownPanels();
+  }
+
+  // Redraws only the hero card's lower body (Radone: Office/Personal
+  // Expense tiles; Efty: the original Total Expense + ring), from the
+  // cached breakdownHeroData — reused on every renderBreakdown() and on
+  // each tile click.
+  function renderBreakdownHero() {
+    if (!breakdownHeroData) return;
+    const { isRadone, total, officeTotal, personalTotal, prevTotal, sortedCats, activeCats } = breakdownHeroData;
+    const body = document.getElementById('breakdown-hero-body');
+
+    if (!isRadone) {
+      const { svg, maxPct } = buildExpenseRing(sortedCats, total, activeCats);
+      let trendHTML = '';
+      if (prevTotal > 0) {
+        const diffPct = ((total - prevTotal) / prevTotal) * 100;
+        const less = diffPct <= 0;
+        trendHTML = `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;border-radius:100px;padding:4px 12px;font-size:11.5px;font-weight:600;background:${less ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)'};color:${less ? '#34D399' : '#F87171'}">${less ? '↘' : '↗'} গত মাসের চেয়ে ${Math.abs(diffPct).toFixed(0)}% ${less ? 'কম' : 'বেশি'}</div>`;
+      }
+      body.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+          <div style="min-width:0">
+            <div style="font-size:10.5px;color:#94A3B8;letter-spacing:.06em;font-weight:600">TOTAL EXPENSE</div>
+            <div class="amount" style="font-size:25px;font-weight:800;margin-top:4px;white-space:nowrap">৳${total.toLocaleString()}</div>
+            ${trendHTML}
+          </div>
+          <div style="position:relative;width:96px;height:96px;flex-shrink:0">
+            ${svg}
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+              <div style="font-size:9.5px;color:#94A3B8">সর্বোচ্চ</div>
+              <div style="font-size:14px;font-weight:700">${maxPct.toFixed(1)}%</div>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const officeOn = breakdownView === 'office';
+    const personalOn = breakdownView === 'personal';
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div onclick="setBreakdownView('office')" style="cursor:pointer;border-radius:14px;padding:14px;min-width:0;background:${officeOn ? 'rgba(59,130,246,.22)' : 'rgba(255,255,255,.06)'};border:1px solid ${officeOn ? '#60A5FA' : 'rgba(255,255,255,.12)'}">
+          <div style="font-size:10px;color:#94A3B8;letter-spacing:.05em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">OFFICE EXPENSE</div>
+          <div class="amount" style="font-size:18px;font-weight:800;margin-top:4px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">৳${officeTotal.toLocaleString()}</div>
+        </div>
+        <div onclick="setBreakdownView('personal')" style="cursor:pointer;border-radius:14px;padding:14px;min-width:0;background:${personalOn ? 'rgba(16,185,129,.22)' : 'rgba(255,255,255,.06)'};border:1px solid ${personalOn ? '#34D399' : 'rgba(255,255,255,.12)'}">
+          <div style="font-size:10px;color:#94A3B8;letter-spacing:.05em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">PERSONAL EXPENSE</div>
+          <div class="amount" style="font-size:18px;font-weight:800;margin-top:4px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">৳${personalTotal.toLocaleString()}</div>
+        </div>
+      </div>`;
+  }
+
+  // Only one of the two Radone breakdown panels is visible at a time —
+  // picked via the hero tiles — so the page doesn't show both stacked.
+  // Efty has no office/personal split, so her single panel always shows.
+  function applyBreakdownPanels() {
+    const isRadone = currentProfile === 'radone';
+    document.getElementById('breakdown-personal-panel').style.display = (!isRadone || breakdownView === 'personal') ? 'block' : 'none';
+    document.getElementById('breakdown-office-panel').style.display = (isRadone && breakdownView === 'office') ? 'block' : 'none';
+  }
+
+  window.setBreakdownView = function(view) {
+    breakdownView = view;
+    renderBreakdownHero();
+    applyBreakdownPanels();
   }
 
   function renderAssetsStatement(pInc, pExp) {
@@ -1481,6 +1771,44 @@
     else if (type === 'card') item = cards.find(c=>c.id==id);
     buildForm(item);
   }
+
+  window.showIncomeDetail = function(id) {
+    const i = income.find(x => x.id == id);
+    if (!i) return;
+    const comp = i.category_group || 'Personal';
+    document.getElementById('income-detail-body').innerHTML = `
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Date</span><b>${esc(i.date)}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Client</span><b>${esc(i.source)}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Project</span><span class="text-amber-700 font-medium">${esc(i.project_tag) || '—'}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Concern</span><span class="badge ${companyBadgeClass(comp)}">${esc(comp)}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Wallet</span><span class="badge bg-slate-100">${esc(i.notes)}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Amount</span><span class="amount text-emerald-700">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</span></div>
+    `;
+    document.getElementById('income-detail-edit').onclick = () => { closeIncomeDetail(); openEditModal('income', id); };
+    document.getElementById('income-detail-delete').onclick = () => { closeIncomeDetail(); deleteMasterRecord('hub_income', id); };
+    document.getElementById('income-detail-modal').style.display = 'flex';
+  }
+
+  function closeIncomeDetail() { document.getElementById('income-detail-modal').style.display = 'none'; }
+
+  window.showExpenseDetail = function(id) {
+    const e = expenses.find(x => x.id == id);
+    if (!e) return;
+    const cats = currentProfile === 'radone' ? RADONE_CATS : EFTY_CATS;
+    document.getElementById('expense-detail-body').innerHTML = `
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Date</span><b>${esc(e.date)}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Description</span><b>${esc(e.description)}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Project</span><span class="text-amber-700 font-medium">${esc(e.project_tag) || '—'}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Category</span><span class="badge bg-slate-100">${esc(cats[e.category]||e.category)}</span>${isTransfer(e) ? ' <span class="badge bg-blue-100 text-blue-700">Transfer</span>' : ''}</div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Wallet</span><span class="badge bg-slate-100">${esc(e.payment_method)}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#475569">Amount</span><span class="amount text-red-700">৳${parseFloat(e.amount||0).toLocaleString()}</span></div>
+    `;
+    document.getElementById('expense-detail-edit').onclick = () => { closeExpenseDetail(); openEditModal('expense', id); };
+    document.getElementById('expense-detail-delete').onclick = () => { closeExpenseDetail(); deleteMasterRecord('hub_expenses', id); };
+    document.getElementById('expense-detail-modal').style.display = 'flex';
+  }
+
+  function closeExpenseDetail() { document.getElementById('expense-detail-modal').style.display = 'none'; }
 
   function buildForm(item=null) {
     const fBody = document.getElementById('form-body'), isRadone = currentProfile === 'radone';
