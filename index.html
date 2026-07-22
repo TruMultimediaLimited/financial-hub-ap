@@ -41,6 +41,12 @@
     .btn-p:disabled,.btn-s:disabled{opacity:.5;cursor:not-allowed}
     .btn-d{background:var(--neg-dim);color:var(--neg);border:1px solid #FECACA;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px}
     .btn-e{background:var(--acc-dim);color:var(--acc);border:1px solid #BFDBFE;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+    .exp-view-btn{border-radius:12px;padding:12px 10px;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+    /* Single toggle box for the Payment log's concern filter — one <select>
+       instead of a row of side-by-side chips, matching .month-sel-wrap. */
+    .concern-sel-wrap{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 12px;flex:1;min-width:0}
+    .concern-sel-wrap:hover{border-color:var(--acc)}
+    #income-concern-select{flex:1;min-width:0;width:auto!important;background:transparent!important;border:none!important;padding:0!important;min-height:0;font-size:12.5px!important;font-weight:600;color:var(--acc)!important;text-overflow:ellipsis}
     .nav-link{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--text-muted)}
     .nav-link.on{background:var(--acc-dim);color:var(--acc);font-weight:600}
     .sec{display:none}
@@ -60,8 +66,6 @@
     .cc-dots .dot{width:6px;height:6px;border-radius:50%;background:#CBD5E1;transition:background .15s,transform .15s}
     .cc-dots .dot.on{background:var(--acc);transform:scale(1.3)}
     .chip{width:34px;height:26px;background:linear-gradient(135deg,#c9961a,#f0c040);border-radius:4px;margin-bottom:12px}
-    details.bd-cat summary{cursor:pointer;list-style:none}
-    details.bd-cat summary::-webkit-details-marker{display:none}
     .clickable{cursor:pointer}
     #conn-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#FEE2E2;color:#991B1B;border-bottom:1px solid #FECACA;text-align:center;font-size:13px;padding:8px}
     #login-gate{position:fixed;inset:0;z-index:20000;background:var(--surface-0);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -299,18 +303,31 @@
 
   <!-- INCOME LOG SEC -->
   <div id="sec-income" class="sec">
-    <div class="glass" style="border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+    <div class="glass" style="border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
       <span style="font-weight:600" id="income-sec-title">Records</span>
-      <button class="btn-s" id="btn-add-inc-page">+ Income</button>
+      <div class="concern-sel-wrap" id="income-concern-wrap" style="display:none">
+        <span data-icon="building" data-icon-size="14" style="color:var(--acc);flex-shrink:0"></span>
+        <select id="income-concern-select">
+          <option value="all">All Concern</option>
+          <option value="Multimedia">Tru Multimedia Limited</option>
+          <option value="Truphoto">Truphoto Studio</option>
+          <option value="4R">4R Studio</option>
+        </select>
+      </div>
+      <button class="btn-s" id="btn-add-inc-page" style="flex-shrink:0">+ Income</button>
     </div>
     <div id="inc-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- EXPENSES LOG SEC -->
   <div id="sec-expenses" class="sec">
-    <div class="glass" style="border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+    <div class="glass" id="expense-header-default" style="border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
       <span style="font-weight:600">Records</span>
       <button class="btn-s" id="btn-add-exp-page">+ Expense</button>
+    </div>
+    <div id="expense-header-split" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <button id="btn-exp-personal" class="exp-view-btn">+ Personal Expense</button>
+      <button id="btn-exp-office" class="exp-view-btn">+ Office Expense</button>
     </div>
     <div id="exp-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
@@ -514,6 +531,17 @@
   </div>
 </div>
 
+<!-- BREAKDOWN CATEGORY TRANSACTIONS -->
+<div id="category-detail-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="font-size:16px;font-weight:700" id="category-detail-title">Category</h3>
+      <button id="btn-close-category-detail" style="color:#475569"><span data-icon="x" data-icon-size="18"></span></button>
+    </div>
+    <div id="category-detail-list" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <div id="toast-wrap"></div>
 
 <script>
@@ -532,6 +560,11 @@
   // Which of the two Radone breakdown panels the hero tiles have selected —
   // keeps the page from showing both stacked/cluttered at once.
   let breakdownView = 'personal';
+  // Same idea for the Expenses log's two type buttons, and the Payment
+  // log's concern filter chips.
+  let expenseView = 'personal';
+  let incomeConcernFilter = 'all';
+  let lastMInc = [], lastMExp = [];
   let charts = {};
 
   // Escapes free-text DB fields before they're dropped into innerHTML, so a
@@ -714,6 +747,17 @@
     document.getElementById('more-sheet').addEventListener('click', (ev) => { if (ev.target.id === 'more-sheet') closeMoreSheet(); });
     document.getElementById('btn-add-inc-page').addEventListener('click', () => openAddModal('income'));
     document.getElementById('btn-add-exp-page').addEventListener('click', () => openAddModal('expense'));
+    document.getElementById('btn-exp-personal').addEventListener('click', () => selectExpenseView('personal'));
+    document.getElementById('btn-exp-office').addEventListener('click', () => selectExpenseView('office'));
+    // Radone's income "concern" — which of his agency clients a payment
+    // maps to — reuses the same category_group field/matching as
+    // companyBadgeClass.
+    document.getElementById('income-concern-select').addEventListener('change', function() {
+      incomeConcernFilter = this.value;
+      renderIncomeList();
+    });
+    document.getElementById('btn-close-category-detail').addEventListener('click', closeCategoryDetail);
+    document.getElementById('category-detail-modal').addEventListener('click', (ev) => { if (ev.target.id === 'category-detail-modal') closeCategoryDetail(); });
     document.getElementById('dash-assets-card').addEventListener('click', () => goToSec('wealth'));
     document.getElementById('btn-add-cc-pane').addEventListener('click', () => openAddModal('card'));
     document.getElementById('btn-add-debt').addEventListener('click', () => openAddModal('debt'));
@@ -925,6 +969,8 @@
 
     const mInc = pInc.filter(i => i.date && i.date.startsWith(selMonth));
     const mExp = pExp.filter(e => e.date && e.date.startsWith(selMonth));
+    lastMInc = mInc;
+    lastMExp = mExp;
 
     // USD entries live in their own USD wallets/KPIs and are never converted
     // into BDT, so they don't contribute to the BDT-denominated totals below.
@@ -1054,25 +1100,19 @@
 
     const activeCats = isRadone ? RADONE_CATS : EFTY_CATS;
 
-    document.getElementById('inc-list').innerHTML = mInc.map(i => {
-      return `<div class="glass" style="border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
-        <span class="icon-badge" style="grid-row:1 / 3;background:var(--pos-dim);color:var(--pos)">${icon('wallet',16)}</span>
-        <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(i.source)}</div>
-        <div class="amount" style="font-weight:700;font-size:14px;color:var(--pos);text-align:right;white-space:nowrap">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</div>
-        <div style="font-size:11.5px;color:#94a3b8">${i.date}</div>
-        <button class="btn-s" style="padding:3px 9px;font-size:11px;white-space:nowrap;justify-self:end" onclick="showIncomeDetail('${i.id}')">View Details</button>
-      </div>`
-    }).join('') || '<div style="text-align:center;color:#475569;padding:20px 0">No income records for this month</div>';
+    // Concern filter (Payment log) and the Personal/Office split (Expenses
+    // log) are Radone-only concepts — Efty keeps the plain header/list.
+    document.getElementById('income-sec-title').style.display = isRadone ? 'none' : 'block';
+    document.getElementById('income-concern-wrap').style.display = isRadone ? 'flex' : 'none';
+    document.getElementById('expense-header-default').style.display = isRadone ? 'none' : 'flex';
+    document.getElementById('expense-header-split').style.display = isRadone ? 'grid' : 'none';
+    if (isRadone) {
+      document.getElementById('income-concern-select').value = incomeConcernFilter;
+      applyExpenseViewButtons();
+    }
 
-    document.getElementById('exp-list').innerHTML = mExp.map(e => {
-      return `<div class="glass" style="border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
-        <span class="icon-badge" style="grid-row:1 / 3;background:var(--neg-dim);color:var(--neg)">${icon('receipt',16)}</span>
-        <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(e.description)}</div>
-        <div class="amount" style="font-weight:700;font-size:14px;color:var(--neg);text-align:right;white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</div>
-        <div style="font-size:11.5px;color:#94a3b8">${e.date}</div>
-        <button class="btn-e" style="padding:3px 9px;font-size:11px;white-space:nowrap;justify-self:end" onclick="showExpenseDetail('${e.id}')">View Details</button>
-      </div>`
-    }).join('') || '<div style="text-align:center;color:#475569;padding:20px 0">No expense records for this month</div>';
+    renderIncomeList();
+    renderExpenseList();
 
     const [selY, selM] = selMonth.split('-').map(Number);
     const prevMonthDate = new Date(selY, selM - 2, 1);
@@ -1086,6 +1126,58 @@
     try {
       renderAnalytics(mInc, mExpSpend, activeCats, getAmtBDT);
     } catch(err) { console.error("Chart render error:", err); }
+  }
+
+  function renderIncomeList() {
+    const filtered = incomeConcernFilter === 'all' ? lastMInc : lastMInc.filter(i => (i.category_group || 'Personal').includes(incomeConcernFilter));
+    document.getElementById('inc-list').innerHTML = filtered.map(i => {
+      const c = concernColor(i.category_group);
+      return `
+      <div style="background:${c.bg};border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
+        <span style="grid-row:1 / 3;background:${c.ring};color:${c.text};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">${icon('wallet',16)}</span>
+        <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;color:var(--text)">${esc(i.source)}</div>
+        <div class="amount" style="font-weight:700;font-size:14px;color:${c.text};text-align:right;white-space:nowrap">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</div>
+        <div style="font-size:11.5px;color:var(--text-muted)">${i.date}</div>
+        <button style="background:${c.ring};color:${c.text};border:none;border-radius:100px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;justify-self:end" onclick="showIncomeDetail('${i.id}')">View Details</button>
+      </div>`;
+    }).join('') || '<div style="text-align:center;color:#475569;padding:20px 0">No income records for this month</div>';
+  }
+
+  // Radone-only Personal/Office split — matches the same OFFICE_EXP_CATS
+  // used by the dashboard and Breakdown page, so all three stay in sync.
+  function applyExpenseViewButtons() {
+    const personalOn = expenseView === 'personal';
+    const pBtn = document.getElementById('btn-exp-personal'), oBtn = document.getElementById('btn-exp-office');
+    pBtn.style.background = personalOn ? 'var(--pos-dim)' : '#fff';
+    pBtn.style.borderColor = personalOn ? 'var(--pos)' : 'var(--border)';
+    pBtn.style.color = personalOn ? 'var(--pos)' : 'var(--text)';
+    oBtn.style.background = !personalOn ? 'var(--acc-dim)' : '#fff';
+    oBtn.style.borderColor = !personalOn ? 'var(--acc)' : 'var(--border)';
+    oBtn.style.color = !personalOn ? 'var(--acc)' : 'var(--text)';
+  }
+
+  function selectExpenseView(type) {
+    expenseView = type;
+    applyExpenseViewButtons();
+    renderExpenseList();
+    openAddModal('expense');
+  }
+
+  function renderExpenseList() {
+    const isRadone = currentProfile === 'radone';
+    const activeCats = isRadone ? RADONE_CATS : EFTY_CATS;
+    const filtered = isRadone ? lastMExp.filter(e => OFFICE_EXP_CATS.includes(e.category) === (expenseView === 'office')) : lastMExp;
+    document.getElementById('exp-list').innerHTML = filtered.map(e => {
+      const c = categoryColor(e.category || 'misc', activeCats);
+      return `
+      <div style="background:${c.bg};border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
+        <span style="grid-row:1 / 3;background:${c.ring};color:${c.text};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">${icon('receipt',16)}</span>
+        <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;color:var(--text)">${esc(e.description)}</div>
+        <div class="amount" style="font-weight:700;font-size:14px;color:${c.text};text-align:right;white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</div>
+        <div style="font-size:11.5px;color:var(--text-muted)">${e.date}</div>
+        <button style="background:${c.ring};color:${c.text};border:none;border-radius:100px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;justify-self:end" onclick="showExpenseDetail('${e.id}')">View Details</button>
+      </div>`;
+    }).join('') || '<div style="text-align:center;color:#475569;padding:20px 0">No expense records for this month</div>';
   }
 
   // Mobile-only visual cue for the swipeable credit-card carousel: one dot
@@ -1422,8 +1514,24 @@
     { bg: '#EEF2FF', ring: '#E0E7FF', text: '#4338CA', bar: '#6366F1' }
   ];
 
-  // Shared by buildBreakdownHTML and the hero ring so a category's card
-  // color always matches its ring segment color (same sort, same index).
+  // Deterministic (not sort-order dependent) category → color, so a
+  // category's color stays fixed across renders and matches everywhere
+  // it appears: Breakdown cards, the hero ring, and the Expenses log cards.
+  function categoryColor(catKey, activeCats) {
+    const keys = Object.keys(activeCats);
+    const idx = keys.indexOf(catKey);
+    return CAT_COLORS[(idx >= 0 ? idx : 0) % CAT_COLORS.length];
+  }
+
+  // Same idea for the Payment log's concern (category_group), shared with
+  // the concern <select> filter's options.
+  const CONCERN_KEYS = ['Personal', 'Multimedia', 'Truphoto', '4R'];
+  function concernColor(categoryGroup) {
+    const comp = categoryGroup || 'Personal';
+    const key = CONCERN_KEYS.find(k => k !== 'Personal' && comp.includes(k)) || 'Personal';
+    return CAT_COLORS[CONCERN_KEYS.indexOf(key) % CAT_COLORS.length];
+  }
+
   function groupByCategory(expList, getAmtBDT) {
     const groups = {};
     expList.forEach(e => {
@@ -1435,18 +1543,18 @@
     return Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
   }
 
-  // Multi-segment ring (one arc per category, colored to match CAT_COLORS)
-  // for the Breakdown hero card, plus the largest category's share for the
-  // "সর্বোচ্চ" center label.
-  function buildExpenseRing(sorted, grandTotal) {
+  // Multi-segment ring (one arc per category, colored to match its card
+  // below) for the Breakdown hero card, plus the largest category's share
+  // for the "সর্বোচ্চ" center label.
+  function buildExpenseRing(sorted, grandTotal, activeCats) {
     const size = 96, stroke = 11, r = (size - stroke) / 2, c = 2 * Math.PI * r;
     if (!sorted.length || grandTotal <= 0) {
       return { svg: `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="${stroke}"/></svg>`, maxPct: 0 };
     }
     let offset = 0;
-    const arcs = sorted.map(([cat, g], idx) => {
+    const arcs = sorted.map(([cat, g]) => {
       const pct = (g.total / grandTotal) * 100;
-      const color = CAT_COLORS[idx % CAT_COLORS.length].bar;
+      const color = categoryColor(cat, activeCats).bar;
       const len = (pct / 100) * c;
       const gap = sorted.length > 1 ? Math.min(2, len / 2) : 0;
       const dash = `${Math.max(0, len - gap)} ${c - len + gap}`;
@@ -1464,48 +1572,54 @@
     return new Date(y, m - 1, 1).toLocaleString('en', { month: 'short', year: 'numeric' });
   }
 
-  function buildBreakdownHTML(expList, activeCats, getAmtBDT, grandTotal, openAll = false) {
+  // Simplified category card: icon + name (row 1, left) + total (row 1,
+  // right), latest transaction date (row 2, left) + View Details (row 2,
+  // right) — same 4-field grid as the Payment/Expense record cards.
+  // View Details opens a modal listing every transaction in that category.
+  function buildBreakdownHTML(expList, activeCats, getAmtBDT) {
     const sorted = groupByCategory(expList, getAmtBDT);
     if (!sorted.length) return '<div style="color:#475569;font-size:13px">No expense records for this month</div>';
 
-    return sorted.map(([cat, g], idx) => {
-      const pct = grandTotal > 0 ? (g.total / grandTotal) * 100 : 0;
-      const c = CAT_COLORS[idx % CAT_COLORS.length];
+    return sorted.map(([cat, g]) => {
+      const c = categoryColor(cat, activeCats);
       // Category labels are "<emoji> <text>" (see RADONE_CATS/EFTY_CATS) —
       // split the emoji out to use as the card's icon badge.
       const label = activeCats[cat] || cat;
       const spaceIdx = label.indexOf(' ');
       const catEmoji = spaceIdx > -1 ? label.slice(0, spaceIdx) : '📦';
       const catText = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
-      const rows = g.entries.map(e => `
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid rgba(15,23,42,.06);font-size:12.5px">
-          <span style="color:var(--text-muted);white-space:nowrap;flex-shrink:0">${e.date || ''}</span>
-          <span style="flex:1;min-width:0;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.description)}${e.project_tag ? ` <span style="color:var(--warn);font-size:11px">· ${esc(e.project_tag)}</span>` : ''}</span>
-          <span style="color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0">${esc(e.payment_method)}</span>
-          <span class="amount text-red-700" style="white-space:nowrap;flex-shrink:0">৳${parseFloat(e.amount||0).toLocaleString()}</span>
-        </div>`).join('');
+      const latestDate = g.entries.reduce((max, e) => (e.date && e.date > max ? e.date : max), g.entries[0].date || '');
       return `
-        <details class="bd-cat" style="background:${c.bg};border-radius:14px;overflow:hidden" ${openAll ? 'open' : ''}>
-          <summary style="padding:14px">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-              <div style="display:flex;align-items:center;gap:10px;min-width:0">
-                <span style="background:${c.ring};width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${catEmoji}</span>
-                <div style="min-width:0">
-                  <div style="font-weight:700;font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(catText)}</div>
-                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${g.entries.length} টি লেনদেন</div>
-                </div>
-              </div>
-              <div style="text-align:right;flex-shrink:0">
-                <div class="amount" style="font-weight:700;font-size:14px;color:var(--text)">৳${g.total.toLocaleString()}</div>
-                <span style="background:${c.ring};color:${c.text};display:inline-block;margin-top:4px;padding:1px 8px;border-radius:100px;font-size:11px;font-weight:600">${pct.toFixed(1)}%</span>
-              </div>
-            </div>
-            <div style="height:5px;background:rgba(15,23,42,.08);border-radius:100px;margin-top:10px"><div style="background:${c.bar};height:100%;width:${Math.min(100, pct)}%;border-radius:100px"></div></div>
-          </summary>
-          <div style="padding-bottom:4px">${rows}</div>
-        </details>`;
+        <div style="background:${c.bg};border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
+          <span style="grid-row:1 / 3;background:${c.ring};width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${catEmoji}</span>
+          <div style="font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(catText)}</div>
+          <div class="amount" style="font-weight:700;font-size:14px;color:${c.text};text-align:right;white-space:nowrap">৳${g.total.toLocaleString()}</div>
+          <div style="font-size:11.5px;color:var(--text-muted)">${latestDate}</div>
+          <button style="background:${c.ring};color:${c.text};border:none;border-radius:100px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;justify-self:end" onclick="showCategoryDetail('${cat}')">View Details</button>
+        </div>`;
     }).join('');
   }
+
+  window.showCategoryDetail = function(catKey) {
+    const cats = currentProfile === 'radone' ? RADONE_CATS : EFTY_CATS;
+    const label = cats[catKey] || catKey;
+    const spaceIdx = label.indexOf(' ');
+    const catText = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
+    const entries = lastMExp.filter(e => (e.category || 'misc') === catKey).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    document.getElementById('category-detail-title').textContent = catText;
+    document.getElementById('category-detail-list').innerHTML = entries.map(e => `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--surface-2)">
+        <div style="min-width:0">
+          <div style="font-weight:600;font-size:12.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.description)}</div>
+          <div style="font-size:10.5px;color:var(--text-muted);margin-top:1px">${e.date || ''}</div>
+        </div>
+        <div class="amount" style="font-size:12.5px;font-weight:700;color:var(--neg);flex-shrink:0;white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</div>
+      </div>`
+    ).join('') || '<div style="text-align:center;color:#475569;font-size:12.5px;padding:10px 0">No entries</div>';
+    document.getElementById('category-detail-modal').style.display = 'flex';
+  }
+
+  function closeCategoryDetail() { document.getElementById('category-detail-modal').style.display = 'none'; }
 
   // Cache of the hero's last computed figures so setBreakdownView() can
   // redraw the tiles/ring on a click without recomputing from the data.
@@ -1515,7 +1629,7 @@
     const isRadone = currentProfile === 'radone';
     const total = mExp.reduce((s, e) => s + getAmtBDT(e), 0);
     document.getElementById('breakdown-total-amt').textContent = '৳' + total.toLocaleString();
-    document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(mExp, activeCats, getAmtBDT, total);
+    document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(mExp, activeCats, getAmtBDT);
 
     document.getElementById('breakdown-hero-month').textContent = formatMonthLabel(selMonth);
 
@@ -1527,10 +1641,10 @@
       const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category));
       officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
       document.getElementById('breakdown-office-amt').textContent = '৳' + officeTotal.toLocaleString();
-      document.getElementById('breakdown-office-list').innerHTML = buildBreakdownHTML(officeExp, activeCats, getAmtBDT, officeTotal, true);
+      document.getElementById('breakdown-office-list').innerHTML = buildBreakdownHTML(officeExp, activeCats, getAmtBDT);
     }
 
-    breakdownHeroData = { isRadone, total, officeTotal, personalTotal: total - officeTotal, prevTotal, sortedCats: groupByCategory(mExp, getAmtBDT) };
+    breakdownHeroData = { isRadone, total, officeTotal, personalTotal: total - officeTotal, prevTotal, sortedCats: groupByCategory(mExp, getAmtBDT), activeCats };
     renderBreakdownHero();
     applyBreakdownPanels();
   }
@@ -1541,11 +1655,11 @@
   // each tile click.
   function renderBreakdownHero() {
     if (!breakdownHeroData) return;
-    const { isRadone, total, officeTotal, personalTotal, prevTotal, sortedCats } = breakdownHeroData;
+    const { isRadone, total, officeTotal, personalTotal, prevTotal, sortedCats, activeCats } = breakdownHeroData;
     const body = document.getElementById('breakdown-hero-body');
 
     if (!isRadone) {
-      const { svg, maxPct } = buildExpenseRing(sortedCats, total);
+      const { svg, maxPct } = buildExpenseRing(sortedCats, total, activeCats);
       let trendHTML = '';
       if (prevTotal > 0) {
         const diffPct = ((total - prevTotal) / prevTotal) * 100;
