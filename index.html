@@ -646,12 +646,34 @@
     food: '🍛 Food Outside',
     emi_installment: '📆 EMI কিস্তি',
     cc_bill_payment: '💳 Card Bill Payment (Transfer)',
-    misc: '⚙ Misc Expenses'
+    misc: '⚙ Misc Expenses',
+    garbage: '🗑️ ময়লার বিল',
+    security_guard: '🛡️ দারোয়ানের বেতন',
+    house_help: '🧹 বুয়ার বেতন',
+    rickshaw: '🛺 রিক্সা ভাড়া',
+    cng: '🚕 সিএনজি ভাড়া',
+    bus_fare: '🚍 বাস ভাড়া',
+    uber: '🚗 উবার ভাড়া',
+    in_laws_expense: '👨‍🦳👵 শ্বশুর-শ্বাশুড়ির খরচ',
+    dipto_expense: '🧑 দিপ্তর খরচ',
+    office_rent: '🏬 অফিস ভাড়া',
+    office_electricity: '⚡ অফিস বিদ্যুৎ বিল',
+    office_garbage: '🗑️ অফিস ময়লার বিল',
+    office_boosting: '🚀 বুস্টিং',
+    office_misc: '📦 অফিস অন্যান্য খরচ',
+    office_boy: '🧑‍💼 অফিস বয়',
+    office_rickshaw: '🛺 অফিস রিক্সা ভাড়া',
+    office_cng: '🚕 অফিস সিএনজি ভাড়া',
+    office_bus: '🚍 অফিস বাস ভাড়া',
+    office_uber: '🚗 অফিস উবার ভাড়া',
+    office_grocery: '🛍️ অফিস বাজার খরচ',
+    office_wifi: '📶 অফিস ওয়াইফাই বিল',
+    office_food: '🍛 অফিস বাহিরের খাবার'
   };
 
   // Expense categories that count as "office spending" — shared by the
   // dashboard Office Financials widget and the Office Expense Breakdown.
-  const OFFICE_EXP_CATS = ['office_out', 'office_ent', 'office_equip'];
+  const OFFICE_EXP_CATS = ['office_out', 'office_ent', 'office_equip', 'staff_salary', 'office_rent', 'office_electricity', 'office_garbage', 'office_boosting', 'office_misc', 'office_boy', 'office_rickshaw', 'office_cng', 'office_bus', 'office_uber', 'office_grocery', 'office_wifi', 'office_food'];
 
   // A credit-card bill payment settles the card's due — the actual spending
   // was already counted as an expense when each purchase / EMI installment
@@ -1634,8 +1656,11 @@
     // Office vs Personal are mutually exclusive here — same OFFICE_EXP_CATS
     // filter as the dashboard/Expenses log, so a category like "Given to
     // Office (General)" only ever shows up under Office, not both panels.
-    const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category));
-    const personalExp = mExp.filter(e => !OFFICE_EXP_CATS.includes(e.category));
+    // Radone-only: Efty has no office split, and some category keys (e.g.
+    // "staff_salary") are reused between RADONE_CATS and EFTY_CATS for
+    // unrelated things, so this filter must never touch her data.
+    const officeExp = isRadone ? mExp.filter(e => OFFICE_EXP_CATS.includes(e.category)) : [];
+    const personalExp = isRadone ? mExp.filter(e => !OFFICE_EXP_CATS.includes(e.category)) : mExp;
     const officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
     const personalTotal = personalExp.reduce((s, e) => s + getAmtBDT(e), 0);
 
