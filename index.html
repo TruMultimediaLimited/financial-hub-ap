@@ -155,20 +155,13 @@
 
 <!-- MAIN CONTENT -->
 <div id="main" style="display:none;margin-left:232px;padding:28px">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:28px;flex-wrap:wrap">
-    <div style="display:flex;align-items:center;gap:12px;min-width:0">
-      <!-- Profile dropdown: replaces the old sidebar Radone/Efty toggle -->
-      <div class="prof-dd" id="prof-dd">
-        <button type="button" class="prof-dd-trigger" id="prof-dd-trigger"><span class="icon-badge" id="prof-dd-icon">👨‍💻</span><span id="prof-dd-label">Radone</span><span style="color:#475569;font-size:10px;margin-left:2px">▾</span></button>
-        <div class="prof-dd-menu" id="prof-dd-menu"></div>
-      </div>
-      <h1 style="font-size:20px;font-weight:700;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="page-title">Dashboard Overview</h1>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap">
+    <!-- Profile dropdown: replaces the old sidebar Radone/Efty toggle -->
+    <div class="prof-dd" id="prof-dd">
+      <button type="button" class="prof-dd-trigger" id="prof-dd-trigger"><span class="icon-badge" id="prof-dd-icon">👨‍💻</span><span id="prof-dd-label">Radone</span><span style="color:#475569;font-size:10px;margin-left:2px">▾</span></button>
+      <div class="prof-dd-menu" id="prof-dd-menu"></div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <select id="month-sel" style="width:auto"></select>
-      <button class="btn-s" id="btn-add-inc-top">+ Income</button>
-      <button class="btn-p" id="btn-add-exp-top">+ Expense</button>
-    </div>
+    <select id="month-sel" style="width:auto"></select>
   </div>
 
   <!-- DASHBOARD SEC -->
@@ -198,6 +191,43 @@
       </div>
     </div>
 
+    <!-- Office / Personal Expense split (Radone only) -->
+    <div id="office-personal-grid" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
+      <div class="glass" style="border-radius:14px;padding:18px;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
+          <span class="icon-badge" style="background:var(--neg-dim)">🏢</span>
+          <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Office Expense</div>
+        </div>
+        <div class="amount kpi-amt" style="font-weight:700;color:var(--neg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="dash-office-exp">৳0</div>
+      </div>
+      <div class="glass" style="border-radius:14px;padding:18px;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
+          <span class="icon-badge" style="background:var(--neg-dim)">🏠</span>
+          <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Personal Expense</div>
+        </div>
+        <div class="amount kpi-amt" style="font-weight:700;color:var(--neg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="dash-personal-exp">৳0</div>
+      </div>
+    </div>
+
+    <!-- Office Payment / Assets (Radone only) -->
+    <div id="office-payment-assets-grid" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
+      <div class="glass" style="border-radius:14px;padding:18px;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
+          <span class="icon-badge" style="background:var(--pos-dim)">🏢</span>
+          <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Office Payment</div>
+        </div>
+        <div class="amount kpi-amt" style="font-weight:700;color:var(--pos);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="dash-office-payment">৳0</div>
+      </div>
+      <div class="glass clickable" id="dash-assets-card" title="বিস্তারিত দেখুন — Assets ট্যাব" style="border-radius:14px;padding:18px;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
+          <span class="icon-badge" style="background:var(--acc-dim)">🏦</span>
+          <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Assets</div>
+        </div>
+        <div class="amount kpi-amt" style="font-weight:700;color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="dash-assets-total">৳0</div>
+        <div style="font-size:10.5px;color:#475569;margin-top:6px" id="dash-assets-usd-line"></div>
+      </div>
+    </div>
+
     <!-- Kurti Paradise Shop Summary Widget (Efty only) -->
     <div id="shop-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(219,39,119,0.1), rgba(236,72,153,0.05))">
       <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:14px">🧵 Kurti Paradise — Shop Business Summary (This Month)</div>
@@ -221,18 +251,11 @@
       </div>
     </div>
 
-    <!-- Multi-Wallet Matrix Layout -->
-    <details class="glass panel-collapse" open style="border-radius:14px;padding:20px;margin-bottom:16px">
-      <summary style="font-size:13px;font-weight:600;color:#64748b"><span>💰 Multi-Currency & Deep Wallet Accounts Matrix</span><span class="chev">▶</span></summary>
-      <div id="wallet-grid-wrapper" class="flex flex-col gap-3" style="margin-top:14px"></div>
-    </details>
-
-    <!-- Active Credit Cards Summary -->
-    <details id="dash-cc-area" class="glass panel-collapse" open style="display:none; margin-bottom:16px; border-radius:14px; padding:20px">
-      <summary style="font-size:13px;font-weight:600;color:#64748b"><span>💳 Active Credit Cards Summary</span><span class="chev">▶</span></summary>
-      <div class="cc-grid" id="dash-cc-grid" style="margin-top:14px"></div>
-      <div class="cc-dots" id="dash-cc-dots"></div>
-    </details>
+    <!-- Wallet Matrix & Credit Cards Summary moved off the dashboard for
+         now — the full card list is still reachable via More → Card. The
+         wallet-grid-wrapper markup and renderWallets()'s tile output are
+         gone; the function still runs (its totals feed the Assets box
+         above) but no longer writes any tiles anywhere. -->
 
     <div id="recent-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="glass" style="border-radius:14px;padding:20px;min-width:0">
@@ -249,7 +272,10 @@
   <!-- INCOME LOG SEC -->
   <div id="sec-income" class="sec">
     <div class="glass" style="border-radius:14px;overflow:hidden">
-      <div style="padding:16px;border-bottom:1px solid #0f172a;font-weight:600" id="income-sec-title">Daily Income Records</div>
+      <div style="padding:16px;border-bottom:1px solid #0f172a;display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <span style="font-weight:600" id="income-sec-title">Daily Income Records</span>
+        <button class="btn-s" id="btn-add-inc-page">+ Income</button>
+      </div>
       <div style="overflow-x:auto">
         <table>
           <thead><tr><th>Date</th><th>Source / Client</th><th>Company Map</th><th>Project Name</th><th>Wallet Route</th><th style="text-align:right">Amount</th><th style="text-align:center">Actions</th></tr></thead>
@@ -262,7 +288,10 @@
   <!-- EXPENSES LOG SEC -->
   <div id="sec-expenses" class="sec">
     <div class="glass" style="border-radius:14px;overflow:hidden">
-      <div style="padding:16px;border-bottom:1px solid #0f172a;font-weight:600">Daily Expenses Records</div>
+      <div style="padding:16px;border-bottom:1px solid #0f172a;display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <span style="font-weight:600">Daily Expenses Records</span>
+        <button class="btn-p" id="btn-add-exp-page">+ Expense</button>
+      </div>
       <div style="overflow-x:auto">
         <table>
           <thead><tr><th>Date</th><th>Description</th><th>Project Name</th><th>Category</th><th>Wallet Method</th><th style="text-align:right">Amount (৳)</th><th style="text-align:center">Actions</th></tr></thead>
@@ -566,8 +595,9 @@
     document.addEventListener('click', () => document.getElementById('prof-dd').classList.remove('open'));
     document.getElementById('btn-close-more').addEventListener('click', closeMoreSheet);
     document.getElementById('more-sheet').addEventListener('click', (ev) => { if (ev.target.id === 'more-sheet') closeMoreSheet(); });
-    document.getElementById('btn-add-inc-top').addEventListener('click', () => openAddModal('income'));
-    document.getElementById('btn-add-exp-top').addEventListener('click', () => openAddModal('expense'));
+    document.getElementById('btn-add-inc-page').addEventListener('click', () => openAddModal('income'));
+    document.getElementById('btn-add-exp-page').addEventListener('click', () => openAddModal('expense'));
+    document.getElementById('dash-assets-card').addEventListener('click', () => goToSec('wealth'));
     document.getElementById('btn-add-cc-pane').addEventListener('click', () => openAddModal('card'));
     document.getElementById('btn-add-debt').addEventListener('click', () => openAddModal('debt'));
     document.getElementById('btn-add-emi').addEventListener('click', () => openAddModal('emi'));
@@ -800,9 +830,26 @@
     // relabeled "Payment" for him (still the same hub_income data/table —
     // just not framed as income). Efty's Kurti Paradise sales keep the
     // "Income" wording since that's a real business income stream for her.
-    document.getElementById('btn-add-inc-top').textContent = isRadone ? '+ Payment' : '+ Income';
+    document.getElementById('btn-add-inc-page').textContent = isRadone ? '+ Payment' : '+ Income';
     document.getElementById('income-sec-title').textContent = isRadone ? 'Daily Payment Records' : 'Daily Income Records';
     document.getElementById('recent-inc-title').textContent = isRadone ? 'Recent Payments' : 'Recent Income';
+
+    // Office/Personal Expense split + Office Payment + Assets (Radone
+    // only) — plain totals, no profit/comparison math, same spirit as the
+    // lone Total Expenses KPI card above.
+    document.getElementById('office-personal-grid').style.display = isRadone ? 'grid' : 'none';
+    document.getElementById('office-payment-assets-grid').style.display = isRadone ? 'grid' : 'none';
+    if (isRadone) {
+      const officeExp = mExpSpend.filter(e => OFFICE_EXP_CATS.includes(e.category)).reduce((s, e) => s + getAmtBDT(e), 0);
+      const personalExp = tExp - officeExp;
+      document.getElementById('dash-office-exp').textContent = '৳' + officeExp.toLocaleString();
+      document.getElementById('dash-personal-exp').textContent = '৳' + personalExp.toLocaleString();
+
+      const officePayment = mInc.filter(i =>
+        i.category_group && (i.category_group.includes('4R') || i.category_group.includes('Truphoto') || i.category_group.includes('Tru Multimedia'))
+      ).reduce((s, i) => s + getAmtBDT(i), 0);
+      document.getElementById('dash-office-payment').textContent = '৳' + officePayment.toLocaleString();
+    }
 
     document.getElementById('shop-financials-widget').style.display = isRadone ? 'none' : 'block';
     if (!isRadone) {
@@ -825,9 +872,18 @@
       document.getElementById('shop-profit').textContent = (shopProfit >= 0 ? '৳' : '-৳') + Math.abs(shopProfit).toLocaleString();
     }
 
-    document.getElementById('dash-cc-area').style.display = isRadone ? 'block' : 'none';
-
-    renderWallets(pInc, pExp);
+    const walletTotals = renderWallets(pInc, pExp);
+    if (isRadone) {
+      // Assets = every wallet balance already tracked (cash/bKash/bank) plus
+      // accumulated DPS. Investment/FDR aren't tracked anywhere yet — no
+      // figure to add for those until that data exists on the Assets tab.
+      const assetsBDT = walletTotals.cash + walletTotals.bkash + walletTotals.cityRadone + walletTotals.bracRadone +
+        walletTotals.dbblRadone + walletTotals.cityComp + walletTotals.bracComp + walletTotals.dbblComp;
+      const radoneDpsSum = expenses.filter(e => e.category === 'radone_dps' && e.profile_owner === 'radone')
+        .reduce((s, e) => s + parseFloat(e.amount||0), 0);
+      document.getElementById('dash-assets-total').textContent = '৳' + (assetsBDT + radoneDpsSum).toLocaleString();
+      document.getElementById('dash-assets-usd-line').textContent = walletTotals.usd !== 0 ? `+ $${walletTotals.usd.toLocaleString()} (USD, আলাদা)` : '';
+    }
 
     const buildCardHTML = (c) => {
       const total = parseFloat(c.total_limit || 0);
@@ -856,10 +912,8 @@
       `;
     };
     if(isRadone) {
-      document.getElementById('dash-cc-grid').innerHTML = cards.map(buildCardHTML).join('');
       document.getElementById('main-cc-grid').innerHTML = cards.map(buildCardHTML).join('');
       document.getElementById('pay-cc-select').innerHTML = '<option value="">Select Card to Pay</option>' + cards.map(c => `<option value="${c.id}">${esc(c.card_name)} (Due: ৳${c.current_due})</option>`).join('');
-      setupCarouselDots('dash-cc-grid', 'dash-cc-dots');
       setupCarouselDots('main-cc-grid', 'main-cc-dots');
     }
 
@@ -980,42 +1034,48 @@
       }
     });
 
+    // The Multi-Currency Wallet Matrix panel was removed from the dashboard
+    // (still reachable nowhere else for now — kept dormant per the same
+    // "remove from nav but leave the code" approach used for Analytics).
+    // This function still runs because its totals feed the dashboard's
+    // Assets box below, so the DOM write is now guarded instead of removed.
     const gridWrapper = document.getElementById('wallet-grid-wrapper');
-    // Wallets are told apart by icon + label now, not by a different text
-    // hue per wallet (accent colors are reserved for income/expense/primary)
-    // — one shared .stat-tile class instead of repeating inline styles.
-    const tile = (icon, label, amt, prefix='৳') => `
-      <div class="stat-tile">
-        <div class="stat-label"><span>${icon}</span><span>${label}</span></div>
-        <div class="stat-val">${prefix}${amt.toLocaleString()}</div>
-      </div>`;
+    if (gridWrapper) {
+      const tile = (icon, label, amt, prefix='৳') => `
+        <div class="stat-tile">
+          <div class="stat-label"><span>${icon}</span><span>${label}</span></div>
+          <div class="stat-val">${prefix}${amt.toLocaleString()}</div>
+        </div>`;
 
-    if(currentProfile === 'radone') {
-      gridWrapper.innerHTML = `
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
-          ${tile('💵','Cash Hand', cash)}
-          ${tile('📱','bKash Wallet', bkash)}
-          ${tile('🏛️','City (Radone)', cityRadone)}
-          ${tile('🏛️','City (Company)', cityComp)}
-          ${tile('🏛️','BRAC (Radone)', bracRadone)}
-          ${tile('🏛️','BRAC (Company)', bracComp)}
-          ${tile('🏛️','DBBL (Radone)', dbblRadone)}
-          ${tile('🏛️','DBBL (Company)', dbblComp)}
-          ${tile('🇺🇸','Central USD Wallet', usd, '$')}
-        </div>
-      `;
-    } else {
-      gridWrapper.innerHTML = `
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
-          ${tile('💵','Cash (Personal)', cashPers)}
-          ${tile('📱','bKash (Personal)', bkashPers)}
-          ${tile('🏛️','Efty Bank Account', eftyBank)}
-          ${tile('🏬','Cash (Shop)', cashShop)}
-          ${tile('📱','bKash (Shop)', bkashShop)}
-          ${tile('💸','Nagad (Shop)', nagadShop)}
-        </div>
-      `;
+      if(currentProfile === 'radone') {
+        gridWrapper.innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+            ${tile('💵','Cash Hand', cash)}
+            ${tile('📱','bKash Wallet', bkash)}
+            ${tile('🏛️','City (Radone)', cityRadone)}
+            ${tile('🏛️','City (Company)', cityComp)}
+            ${tile('🏛️','BRAC (Radone)', bracRadone)}
+            ${tile('🏛️','BRAC (Company)', bracComp)}
+            ${tile('🏛️','DBBL (Radone)', dbblRadone)}
+            ${tile('🏛️','DBBL (Company)', dbblComp)}
+            ${tile('🇺🇸','Central USD Wallet', usd, '$')}
+          </div>
+        `;
+      } else {
+        gridWrapper.innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+            ${tile('💵','Cash (Personal)', cashPers)}
+            ${tile('📱','bKash (Personal)', bkashPers)}
+            ${tile('🏛️','Efty Bank Account', eftyBank)}
+            ${tile('🏬','Cash (Shop)', cashShop)}
+            ${tile('📱','bKash (Shop)', bkashShop)}
+            ${tile('💸','Nagad (Shop)', nagadShop)}
+          </div>
+        `;
+      }
     }
+
+    return { cash, bkash, usd, cityRadone, bracRadone, dbblRadone, cityComp, bracComp, dbblComp };
   }
 
   function renderDebtsPanel() {
