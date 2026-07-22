@@ -638,10 +638,7 @@
     grocery: '🛒 বাজার খরচ',
     wife_expense: '👸 বউয়ের খরচ',
     parents_expense: '👴👵 আব্বু আম্মুর খরচ',
-    staff_salary: '👥 Staff Salary',
-    office_equip: '💻 Office & Project Equipment',
-    office_ent: '☕ Office Guest & Entertainment',
-    office_out: '🏢 Given to Office (General)',
+    staff_salary: '👥 কর্মচারী',
     radone_dps: '⏳ Radone DPS Deposit',
     food: '🍛 Food Outside',
     emi_installment: '📆 EMI কিস্তি',
@@ -657,23 +654,23 @@
     in_laws_expense: '👨‍🦳👵 শ্বশুর-শ্বাশুড়ির খরচ',
     dipto_expense: '🧑 দিপ্তর খরচ',
     office_rent: '🏬 অফিস ভাড়া',
-    office_electricity: '⚡ অফিস বিদ্যুৎ বিল',
-    office_garbage: '🗑️ অফিস ময়লার বিল',
+    office_electricity: '⚡ বিদ্যুৎ_ বিল',
+    office_garbage: '🗑️ ময়লার_ বিল',
     office_boosting: '🚀 বুস্টিং',
-    office_misc: '📦 অফিস অন্যান্য খরচ',
+    office_misc: '📦 অন্যান্য খরচ',
     office_boy: '🧑‍💼 অফিস বয়',
-    office_rickshaw: '🛺 অফিস রিক্সা ভাড়া',
-    office_cng: '🚕 অফিস সিএনজি ভাড়া',
-    office_bus: '🚍 অফিস বাস ভাড়া',
-    office_uber: '🚗 অফিস উবার ভাড়া',
-    office_grocery: '🛍️ অফিস বাজার খরচ',
-    office_wifi: '📶 অফিস ওয়াইফাই বিল',
-    office_food: '🍛 অফিস বাহিরের খাবার'
+    office_rickshaw: '🛺 রিক্সা_ ভাড়া',
+    office_cng: '🚕 সিএনজি_ ভাড়া',
+    office_bus: '🚍 বাস_ ভাড়া',
+    office_uber: '🚗 উবার_ ভাড়া',
+    office_grocery: '🛍️ বাজার_ খরচ',
+    office_wifi: '📶 ওয়াইফাই_ বিল',
+    office_food: '🍛 বাহিরের খাবার'
   };
 
   // Expense categories that count as "office spending" — shared by the
   // dashboard Office Financials widget and the Office Expense Breakdown.
-  const OFFICE_EXP_CATS = ['office_out', 'office_ent', 'office_equip', 'staff_salary', 'office_rent', 'office_electricity', 'office_garbage', 'office_boosting', 'office_misc', 'office_boy', 'office_rickshaw', 'office_cng', 'office_bus', 'office_uber', 'office_grocery', 'office_wifi', 'office_food'];
+  const OFFICE_EXP_CATS = ['staff_salary', 'office_rent', 'office_electricity', 'office_garbage', 'office_boosting', 'office_misc', 'office_boy', 'office_rickshaw', 'office_cng', 'office_bus', 'office_uber', 'office_grocery', 'office_wifi', 'office_food'];
 
   // A credit-card bill payment settles the card's due — the actual spending
   // was already counted as an expense when each purchase / EMI installment
@@ -1075,7 +1072,7 @@
       // Floored at 0 — assets can run dry, but the figure itself isn't a
       // "how far in debt" number, so it never renders negative.
       const assetsBDT = walletTotals.cash + walletTotals.bkash + walletTotals.cityRadone + walletTotals.bracRadone +
-        walletTotals.dbblRadone + walletTotals.cityComp + walletTotals.bracComp + walletTotals.dbblComp;
+        walletTotals.dbblRadone + walletTotals.cityComp + walletTotals.bracComp + walletTotals.dbblComp + walletTotals.nagadRadone;
       const radoneDpsSum = expenses.filter(e => e.category === 'radone_dps' && e.profile_owner === 'radone')
         .reduce((s, e) => s + parseFloat(e.amount||0), 0);
       document.getElementById('dash-assets-total').textContent = '৳' + Math.max(0, assetsBDT + radoneDpsSum).toLocaleString();
@@ -1223,7 +1220,7 @@
 
   function renderWallets(pInc, pExp) {
     let cashPers = 0, cashShop = 0, bkashPers = 0, bkashShop = 0, nagadShop = 0, eftyBank = 0;
-    let cash = 0, bkash = 0, usd = 0, cityRadone = 0, bracRadone = 0, dbblRadone = 0, cityComp = 0, bracComp = 0, dbblComp = 0;
+    let cash = 0, bkash = 0, usd = 0, cityRadone = 0, bracRadone = 0, dbblRadone = 0, cityComp = 0, bracComp = 0, dbblComp = 0, nagadRadone = 0;
 
     pInc.forEach(i => {
       let a = parseFloat(i.amount||0);
@@ -1245,6 +1242,7 @@
         else if(r === '🏛️ City Bank (Company)') cityComp += a;
         else if(r === '🏛️ BRAC Bank (Company)') bracComp += a;
         else if(r === '🏛️ DBBL Bank (Company)') dbblComp += a;
+        else if(r === '💸 Nagad') nagadRadone += a;
         else if(r === '💵 Cash Hand') cash += a;
       }
     });
@@ -1271,6 +1269,7 @@
         else if(m === '🏛️ City Bank (Company)') cityComp -= a;
         else if(m === '🏛️ BRAC Bank (Company)') bracComp -= a;
         else if(m === '🏛️ DBBL Bank (Company)') dbblComp -= a;
+        else if(m === '💸 Nagad') nagadRadone -= a;
         else if(m === '💵 Cash Hand') cash -= a;
         else if(m === '🇺🇸 USD Wallet') usd -= a;
       }
@@ -1300,6 +1299,7 @@
             ${tile('🏛️','BRAC (Company)', bracComp)}
             ${tile('🏛️','DBBL (Radone)', dbblRadone)}
             ${tile('🏛️','DBBL (Company)', dbblComp)}
+            ${tile('💸','Nagad', nagadRadone)}
             ${tile('🇺🇸','Central USD Wallet', usd, '$')}
           </div>
         `;
@@ -1317,7 +1317,7 @@
       }
     }
 
-    return { cash, bkash, usd, cityRadone, bracRadone, dbblRadone, cityComp, bracComp, dbblComp };
+    return { cash, bkash, usd, cityRadone, bracRadone, dbblRadone, cityComp, bracComp, dbblComp, nagadRadone };
   }
 
   function renderDebtsPanel() {
@@ -1746,7 +1746,9 @@
     const isRadone = currentProfile === 'radone';
     let radoneDpsSum = pExp.filter(e => e.category === 'radone_dps' && e.profile_owner === 'radone').reduce((s, e) => s + parseFloat(e.amount||0), 0);
     let eftyDpsSum = pExp.filter(e => e.category === 'efty_dps' && e.profile_owner === 'efty').reduce((s, e) => s + parseFloat(e.amount||0), 0);
-    let officeSum = pExp.filter(e => e.category === 'office_out' && e.profile_owner === 'radone').reduce((s, e) => s + parseFloat(e.amount||0), 0);
+    // "Given to Office (General)" (the old office_out category) was removed —
+    // this now sums every current office category instead of just that one.
+    let officeSum = pExp.filter(e => OFFICE_EXP_CATS.includes(e.category) && e.profile_owner === 'radone').reduce((s, e) => s + parseFloat(e.amount||0), 0);
 
     const list = document.getElementById('asset-statement-list');
     list.innerHTML = isRadone ?
@@ -1899,7 +1901,20 @@
         { value: '💸 Nagad (Shop)', label: '💸 Nagad (Shop)' },
         { value: '🏛️ Efty Bank Account', label: '🏛️ Efty Bank Account' }
       ];
-      const methods = isRadone ? [...radoneBase, ...cardOptions] : eftyMethods;
+      // Office spending only draws from cash/mobile-wallet/company-bank
+      // routes — no personal bank accounts, USD, or credit cards. Only
+      // applied when adding fresh via the Office Expense button; editing
+      // an existing row still shows the full list so its saved wallet
+      // stays selectable even if it predates this restriction.
+      const officeMethods = [
+        { value: '💵 Cash Hand', label: '💵 Cash Hand' },
+        { value: '📱 bKash Wallet', label: '📱 bKash Wallet' },
+        { value: '💸 Nagad', label: '💸 Nagad' },
+        { value: '🏛️ City Bank (Company)', label: '🏛️ City Bank (Company)' },
+        { value: '🏛️ BRAC Bank (Company)', label: '🏛️ BRAC Bank (Company)' },
+        { value: '🏛️ DBBL Bank (Company)', label: '🏛️ DBBL Bank (Company)' }
+      ];
+      const methods = !isRadone ? eftyMethods : (!item && expenseView === 'office' ? officeMethods : [...radoneBase, ...cardOptions]);
       let methodSelectHTML = `<select id="f-method">${methods.map(m=>`<option value="${esc(m.value)}" ${item&&item.payment_method===m.value?'selected':''}>${esc(m.label)}</option>`).join('')}</select>`;
 
       // Only offer one side's categories at a time, never both mixed
