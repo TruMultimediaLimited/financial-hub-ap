@@ -77,8 +77,8 @@
     .stat-tile .stat-label span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
     .stat-tile .stat-val{font-size:15px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .kpi-amt{font-size:24px}
-    #office-fin-grid>div,#shop-fin-grid>div{min-width:0}
-    #office-fin-grid .amount,#shop-fin-grid .amount{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #shop-fin-grid>div{min-width:0}
+    #shop-fin-grid .amount{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .row-hover{border-radius:8px;padding:8px;margin:0 -8px;transition:background .12s;min-width:0}
     .row-hover:hover,.row-hover:active{background:rgba(148,163,184,.08)}
     .row-hover .row-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -113,8 +113,6 @@
       #kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
       #kpi-grid>*:nth-child(3){grid-column:1 / -1}
       .kpi-amt{font-size:19px}
-      #office-fin-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-      #office-fin-grid>*:nth-child(3){grid-column:1 / -1}
       #shop-fin-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
       #recent-grid{grid-template-columns:1fr!important}
       .cc-grid{display:flex!important;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding-bottom:4px;margin-bottom:8px}
@@ -176,7 +174,7 @@
   <!-- DASHBOARD SEC -->
   <div id="sec-dashboard" class="sec on">
     <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px">
-      <div class="glass" style="border-radius:14px;padding:18px;min-width:0">
+      <div class="glass" id="kpi-inc-card" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
           <span class="icon-badge" style="background:var(--pos-dim)">💰</span>
           <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Total Earnings</div>
@@ -191,31 +189,12 @@
         <div class="amount kpi-amt" style="font-weight:700;color:var(--neg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="kpi-exp">৳0</div>
         <div style="font-size:10.5px;color:#475569;margin-top:8px">🧾 ক্লিক করে ব্রেকডাউন দেখুন</div>
       </div>
-      <div class="gem" style="border-radius:14px;padding:18px;min-width:0">
+      <div class="gem" id="kpi-sav-card" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
           <span class="icon-badge" style="background:var(--acc-dim)">🏦</span>
           <div style="font-size:11px;color:#10b981;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Net Savings</div>
         </div>
         <div class="amount kpi-amt" style="font-weight:700" id="kpi-sav">৳0</div>
-      </div>
-    </div>
-
-    <!-- Office Financials Widget (Radone only) -->
-    <div id="office-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(37,99,235,0.1), rgba(59,130,246,0.05))">
-      <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:14px">📊 Office Financials (This Month)</div>
-      <div id="office-fin-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
-        <div>
-          <div style="font-size:11px;color:#475569;margin-bottom:6px">Office Income</div>
-          <div class="amount" style="font-size:20px;font-weight:700;color:#34d399" id="office-income">৳0</div>
-        </div>
-        <div class="clickable" id="office-exp-cell" title="বিস্তারিত খরচের হিসাব দেখুন">
-          <div style="font-size:11px;color:#475569;margin-bottom:6px">Office Expense 🧾</div>
-          <div class="amount" style="font-size:20px;font-weight:700;color:#f87171" id="office-expense">৳0</div>
-        </div>
-        <div>
-          <div style="font-size:11px;color:#475569;margin-bottom:6px">Net Profit</div>
-          <div class="amount" style="font-size:20px;font-weight:700;color:#10b981" id="office-profit">৳0</div>
-        </div>
       </div>
     </div>
 
@@ -257,7 +236,7 @@
 
     <div id="recent-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="glass" style="border-radius:14px;padding:20px;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:14px">Recent Income</div>
+        <div style="font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:14px" id="recent-inc-title">Recent Income</div>
         <div id="recent-inc-list" style="display:flex;flex-direction:column;gap:4px"></div>
       </div>
       <div class="glass" style="border-radius:14px;padding:20px;min-width:0">
@@ -270,7 +249,7 @@
   <!-- INCOME LOG SEC -->
   <div id="sec-income" class="sec">
     <div class="glass" style="border-radius:14px;overflow:hidden">
-      <div style="padding:16px;border-bottom:1px solid #0f172a;font-weight:600">Daily Income Records</div>
+      <div style="padding:16px;border-bottom:1px solid #0f172a;font-weight:600" id="income-sec-title">Daily Income Records</div>
       <div style="overflow-x:auto">
         <table>
           <thead><tr><th>Date</th><th>Source / Client</th><th>Company Map</th><th>Project Name</th><th>Wallet Route</th><th style="text-align:right">Amount</th><th style="text-align:center">Actions</th></tr></thead>
@@ -596,7 +575,6 @@
     document.getElementById('btn-submit-cc-pay').addEventListener('click', executeCardPayment);
     document.getElementById('month-sel').addEventListener('change', function() { selMonth = this.value; renderUI(); });
     document.getElementById('kpi-exp-card').addEventListener('click', () => goToSec('breakdown'));
-    document.getElementById('office-exp-cell').addEventListener('click', () => goToSec('breakdown'));
   }
 
   function goToSec(sec) {
@@ -670,7 +648,7 @@
     const isRadone = currentProfile === 'radone';
     document.getElementById('nav-container').innerHTML = `
       <div class="nav-link" data-sec="dashboard">📊 Dashboard</div>
-      <div class="nav-link" data-sec="income">💰 Income Log</div>
+      <div class="nav-link" data-sec="income">💰 ${isRadone ? 'Payment' : 'Income Log'}</div>
       <div class="nav-link" data-sec="expenses">💸 Expenses Log</div>
       <div class="nav-link" data-sec="breakdown">🧾 খরচের হিসাব</div>
       ${isRadone ? '<div class="nav-link" data-sec="creditcard">💳 Credit Cards</div><div class="nav-link" data-sec="debts">🤝 Debts Ledger</div>' : ''}
@@ -724,10 +702,19 @@
     analytics: { icon: '📈', label: 'Analytics' }
   };
 
+  // Income's label follows the same Radone="Payment" / Efty="Income" split
+  // used everywhere else — resolved here since NAV_LABELS is otherwise
+  // static and shared between the bottom bar and the More sheet.
+  function navLabel(sec) {
+    if (sec === 'income') return { icon: '💰', label: currentProfile === 'radone' ? 'Payment' : 'Income' };
+    return NAV_LABELS[sec];
+  }
+
   function bottomNavSecs() {
     const isRadone = currentProfile === 'radone';
-    // 4th slot is profile-conditional: Radone has Credit Cards, Efty doesn't.
-    const main = isRadone ? ['dashboard', 'income', 'expenses', 'creditcard'] : ['dashboard', 'income', 'expenses', 'wealth'];
+    // Fixed 4-item bar for everyone: Dashboard, Payment/Income, Expenses,
+    // Breakdown. Credit Cards/Debts/Wealth/Analytics live in More.
+    const main = ['dashboard', 'income', 'expenses', 'breakdown'];
     const all = isRadone ? ['dashboard','income','expenses','breakdown','creditcard','debts','wealth','analytics'] : ['dashboard','income','expenses','breakdown','wealth','analytics'];
     const more = all.filter(s => !main.includes(s));
     return { main, more };
@@ -737,7 +724,7 @@
     const { main, more } = bottomNavSecs();
     const moreIsActive = more.includes(activeSec);
     const items = main.map(sec => {
-      const n = NAV_LABELS[sec];
+      const n = navLabel(sec);
       return `<div class="bn-item${sec === activeSec ? ' on' : ''}" data-sec="${sec}"><span class="bn-ic">${n.icon}</span><span>${n.label}</span></div>`;
     }).join('');
     document.getElementById('bottom-nav').innerHTML = items + `<div class="bn-item${moreIsActive ? ' on' : ''}" id="bn-more"><span class="bn-ic">⋯</span><span>More</span></div>`;
@@ -750,7 +737,7 @@
   function renderMoreSheet() {
     const { more } = bottomNavSecs();
     document.getElementById('more-sheet-list').innerHTML = more.map(sec => {
-      const n = NAV_LABELS[sec];
+      const n = navLabel(sec);
       return `<div class="more-row${sec === activeSec ? ' on' : ''}" data-sec="${sec}"><span>${n.icon}</span><span>${n.label}</span></div>`;
     }).join('');
     document.querySelectorAll('#more-sheet-list .more-row').forEach(el => {
@@ -789,29 +776,34 @@
     const tExp = mExpSpend.reduce((sum, e) => sum + getAmtBDT(e), 0);
     const net = tInc - tExp;
 
-    document.getElementById('kpi-inc').textContent = '৳' + tInc.toLocaleString();
     document.getElementById('kpi-exp').textContent = '৳' + tExp.toLocaleString();
-    document.getElementById('kpi-sav').textContent = (net >= 0 ? '৳' : '-৳') + Math.abs(net).toLocaleString();
-    document.getElementById('kpi-sav').style.color = net >= 0 ? '#34d399' : '#f87171';
 
-    // Office Financials Calculation (Radone only)
-    document.getElementById('office-financials-widget').style.display = isRadone ? 'block' : 'none';
+    // Radone has no personal income/profit concept to report — the
+    // Total Earnings and Net Savings KPI cards (and the old Office
+    // Financials widget, removed entirely) only make sense for Efty's
+    // Kurti Paradise business, which keeps its own income + 20%-margin
+    // profit figures further down. tInc/net are still computed above
+    // since Efty's cards below need them; Radone's dashboard just
+    // doesn't display them.
+    document.getElementById('kpi-inc-card').style.display = isRadone ? 'none' : 'block';
+    document.getElementById('kpi-sav-card').style.display = isRadone ? 'none' : 'block';
+    document.getElementById('kpi-grid').style.gridTemplateColumns = isRadone ? '1fr' : 'repeat(3,minmax(0,1fr))';
+    if (!isRadone) {
+      document.getElementById('kpi-inc').textContent = '৳' + tInc.toLocaleString();
+      document.getElementById('kpi-sav').textContent = (net >= 0 ? '৳' : '-৳') + Math.abs(net).toLocaleString();
+      document.getElementById('kpi-sav').style.color = net >= 0 ? '#34d399' : '#f87171';
+    }
+
+    // Header/nav labels: Radone tracks expenses only, so "Income" is
+    // relabeled "Payment" for him (still the same hub_income data/table —
+    // just not framed as income). Efty's Kurti Paradise sales keep the
+    // "Income" wording since that's a real business income stream for her.
+    document.getElementById('btn-add-inc-top').textContent = isRadone ? '+ Payment' : '+ Income';
+    document.getElementById('income-sec-title').textContent = isRadone ? 'Daily Payment Records' : 'Daily Income Records';
+    document.getElementById('recent-inc-title').textContent = isRadone ? 'Recent Payments' : 'Recent Income';
+
     document.getElementById('shop-financials-widget').style.display = isRadone ? 'none' : 'block';
-
-    if (isRadone) {
-      const officeInc = mInc.filter(i =>
-        i.category_group && (i.category_group.includes('4R') || i.category_group.includes('Truphoto') || i.category_group.includes('Tru Multimedia'))
-      ).reduce((sum, i) => sum + getAmtBDT(i), 0);
-
-      const officeExp = mExpSpend.filter(e => OFFICE_EXP_CATS.includes(e.category))
-        .reduce((sum, e) => sum + getAmtBDT(e), 0);
-
-      const officeProfit = officeInc - officeExp;
-
-      document.getElementById('office-income').textContent = '৳' + officeInc.toLocaleString();
-      document.getElementById('office-expense').textContent = '৳' + officeExp.toLocaleString();
-      document.getElementById('office-profit').textContent = (officeProfit >= 0 ? '৳' : '-৳') + Math.abs(officeProfit).toLocaleString();
-    } else {
+    if (!isRadone) {
       // Kurti Paradise Shop Summary (Efty only). Profit/Loss is a flat 20%
       // of Total Sale by design — not sale minus the costs below, which are
       // shown purely for visibility.
@@ -1365,7 +1357,7 @@
           ${groupSelectHTML}
           ${walletSelectHTML}
           <input type="number" id="f-amt" placeholder="Amount" value="${item?item.amount:''}" />
-          <button class="btn-s" id="btn-submit">Save Income</button>`;
+          <button class="btn-s" id="btn-submit">Save Payment</button>`;
       } else {
         // Simplified daily shop-sale entry for Efty — just date, wallet
         // route, and the total amount. No client/project fields to fill in.
