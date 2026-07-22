@@ -300,16 +300,11 @@
   <!-- INCOME LOG SEC -->
   <div id="sec-income" class="sec">
     <div class="glass" style="border-radius:14px;overflow:hidden">
-      <div style="padding:16px;border-bottom:1px solid #0f172a;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px">
         <span style="font-weight:600" id="income-sec-title">Daily Income Records</span>
         <button class="btn-s" id="btn-add-inc-page">+ Income</button>
       </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr><th style="white-space:nowrap">Date</th><th style="white-space:nowrap">Client</th><th style="text-align:right;white-space:nowrap">Amount</th><th style="text-align:center;white-space:nowrap">Details</th></tr></thead>
-          <tbody id="inc-tbody"></tbody>
-        </table>
-      </div>
+      <div id="inc-list" style="display:flex;flex-direction:column;gap:10px;padding:14px"></div>
     </div>
   </div>
 
@@ -1037,14 +1032,21 @@
 
     const activeCats = isRadone ? RADONE_CATS : EFTY_CATS;
 
-    document.getElementById('inc-tbody').innerHTML = mInc.map(i => {
-      return `<tr>
-        <td style="white-space:nowrap">${i.date}</td>
-        <td><b>${esc(i.source)}</b></td>
-        <td style="text-align:right;white-space:nowrap" class="amount text-emerald-700">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</td>
-        <td style="text-align:center"><button class="btn-e" style="white-space:nowrap" onclick="showIncomeDetail('${i.id}')">${icon('receipt',13)} View Details</button></td>
-      </tr>`
-    }).join('') || '<tr><td colspan="4" style="text-align:center;color:#475569">No income records for this month</td></tr>';
+    document.getElementById('inc-list').innerHTML = mInc.map(i => {
+      return `<div class="glass" style="border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          <span class="icon-badge" style="background:var(--pos-dim);color:var(--pos)">${icon('wallet',16)}</span>
+          <div style="min-width:0">
+            <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px">${esc(i.source)}</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px">${i.date}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+          <div class="amount" style="font-weight:700;font-size:14px;color:var(--pos)">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</div>
+          <button class="btn-s" style="padding:5px 10px;font-size:11.5px;white-space:nowrap" onclick="showIncomeDetail('${i.id}')">${icon('receipt',12)} View Details</button>
+        </div>
+      </div>`
+    }).join('') || '<div style="text-align:center;color:#475569;padding:20px 0">No income records for this month</div>';
 
     document.getElementById('exp-tbody').innerHTML = mExp.map(e => `<tr>
       <td>${e.date}</td>
