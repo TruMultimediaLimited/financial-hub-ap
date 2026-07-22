@@ -1388,6 +1388,21 @@
   // shows the category's total, share of grandTotal, and a bar; opening it
   // reveals the individual entries. Used by both breakdown panels so their
   // rendering can't drift apart.
+  // Rotating pastel palette so each category card gets its own light color
+  // instead of one flat gray — cycles if there are more categories than colors.
+  // Inline hex (not Tailwind utility classes) so these render even if the
+  // Tailwind CDN script is slow/blocked on the viewer's network.
+  const CAT_COLORS = [
+    { bg: '#EFF6FF', ring: '#DBEAFE', text: '#1D4ED8', bar: '#3B82F6' },
+    { bg: '#ECFDF5', ring: '#D1FAE5', text: '#047857', bar: '#10B981' },
+    { bg: '#FEF2F2', ring: '#FEE2E2', text: '#B91C1C', bar: '#EF4444' },
+    { bg: '#FFFBEB', ring: '#FEF3C7', text: '#B45309', bar: '#F59E0B' },
+    { bg: '#FAF5FF', ring: '#F3E8FF', text: '#7E22CE', bar: '#A855F7' },
+    { bg: '#FDF2F8', ring: '#FCE7F3', text: '#BE185D', bar: '#EC4899' },
+    { bg: '#F0FDFA', ring: '#CCFBF1', text: '#0F766E', bar: '#14B8A6' },
+    { bg: '#EEF2FF', ring: '#E0E7FF', text: '#4338CA', bar: '#6366F1' }
+  ];
+
   function buildBreakdownHTML(expList, activeCats, getAmtBDT, grandTotal, openAll = false) {
     const groups = {};
     expList.forEach(e => {
@@ -1399,26 +1414,39 @@
     const sorted = Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
     if (!sorted.length) return '<div style="color:#475569;font-size:13px">No expense records for this month</div>';
 
-    return sorted.map(([cat, g]) => {
+    return sorted.map(([cat, g], idx) => {
       const pct = grandTotal > 0 ? (g.total / grandTotal) * 100 : 0;
+      const c = CAT_COLORS[idx % CAT_COLORS.length];
+      // Category labels are "<emoji> <text>" (see RADONE_CATS/EFTY_CATS) —
+      // split the emoji out to use as the card's icon badge.
+      const label = activeCats[cat] || cat;
+      const spaceIdx = label.indexOf(' ');
+      const catEmoji = spaceIdx > -1 ? label.slice(0, spaceIdx) : '📦';
+      const catText = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
       const rows = g.entries.map(e => `
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid var(--border);font-size:12.5px">
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid rgba(15,23,42,.06);font-size:12.5px">
           <span style="color:var(--text-muted);white-space:nowrap;flex-shrink:0">${e.date || ''}</span>
           <span style="flex:1;min-width:0;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.description)}${e.project_tag ? ` <span style="color:var(--warn);font-size:11px">· ${esc(e.project_tag)}</span>` : ''}</span>
           <span style="color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0">${esc(e.payment_method)}</span>
           <span class="amount text-red-700" style="white-space:nowrap;flex-shrink:0">৳${parseFloat(e.amount||0).toLocaleString()}</span>
         </div>`).join('');
       return `
-        <details class="bd-cat" style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;overflow:hidden" ${openAll ? 'open' : ''}>
-          <summary style="padding:10px 12px">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-              <span style="font-size:13px;color:var(--text)">${esc(activeCats[cat] || cat)} <span style="color:var(--text-muted);font-size:11.5px">(${g.entries.length})</span></span>
-              <span style="display:flex;align-items:center;gap:10px">
-                <span style="color:var(--text-muted);font-size:11.5px">${pct.toFixed(1)}%</span>
-                <span class="amount" style="font-weight:700;color:var(--neg)">৳${g.total.toLocaleString()}</span>
-              </span>
+        <details class="bd-cat" style="background:${c.bg};border-radius:14px;overflow:hidden" ${openAll ? 'open' : ''}>
+          <summary style="padding:14px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                <span style="background:${c.ring};width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${catEmoji}</span>
+                <div style="min-width:0">
+                  <div style="font-weight:700;font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(catText)}</div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${g.entries.length} টি লেনদেন</div>
+                </div>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <div class="amount" style="font-weight:700;font-size:14px;color:var(--text)">৳${g.total.toLocaleString()}</div>
+                <span style="background:${c.ring};color:${c.text};display:inline-block;margin-top:4px;padding:1px 8px;border-radius:100px;font-size:11px;font-weight:600">${pct.toFixed(1)}%</span>
+              </div>
             </div>
-            <div style="height:5px;background:var(--border);border-radius:100px;margin-top:8px"><div style="height:100%;width:${Math.min(100, pct)}%;background:linear-gradient(90deg,#DC2626,#F87171);border-radius:100px"></div></div>
+            <div style="height:5px;background:rgba(15,23,42,.08);border-radius:100px;margin-top:10px"><div style="background:${c.bar};height:100%;width:${Math.min(100, pct)}%;border-radius:100px"></div></div>
           </summary>
           <div style="padding-bottom:4px">${rows}</div>
         </details>`;
