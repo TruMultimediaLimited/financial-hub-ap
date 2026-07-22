@@ -328,22 +328,9 @@
         </div>
         <div style="background:rgba(255,255,255,.08);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;white-space:nowrap" id="breakdown-hero-month"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:22px">
-        <div style="min-width:0">
-          <div style="font-size:10.5px;color:#94A3B8;letter-spacing:.06em;font-weight:600">TOTAL EXPENSE</div>
-          <div class="amount" style="font-size:25px;font-weight:800;margin-top:4px;white-space:nowrap" id="breakdown-hero-total">৳0</div>
-          <div id="breakdown-hero-trend" style="display:none;align-items:center;gap:5px;margin-top:10px;border-radius:100px;padding:4px 12px;font-size:11.5px;font-weight:600;width:fit-content"></div>
-        </div>
-        <div style="position:relative;width:96px;height:96px;flex-shrink:0">
-          <div id="breakdown-hero-ring"></div>
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
-            <div style="font-size:9.5px;color:#94A3B8">সর্বোচ্চ</div>
-            <div style="font-size:14px;font-weight:700" id="breakdown-hero-max">0%</div>
-          </div>
-        </div>
-      </div>
+      <div id="breakdown-hero-body" style="margin-top:22px"></div>
     </div>
-    <div class="glass" style="border-radius:14px;padding:20px;margin-bottom:20px">
+    <div class="glass" id="breakdown-personal-panel" style="border-radius:14px;padding:20px;margin-bottom:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
         <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="receipt" data-icon-size="16" style="color:var(--neg)"></span>Personal Breakdown</div>
         <div class="amount" style="font-size:18px;font-weight:700;color:var(--neg)" id="breakdown-total-amt">৳0</div>
@@ -542,6 +529,9 @@
   let currentProfile = 'radone';
   let income = [], expenses = [], cards = [], debts = [], emis = [];
   let selMonth = '', modalType = 'income', editId = null, activeSec = 'dashboard';
+  // Which of the two Radone breakdown panels the hero tiles have selected —
+  // keeps the page from showing both stacked/cluttered at once.
+  let breakdownView = 'personal';
   let charts = {};
 
   // Escapes free-text DB fields before they're dropped into innerHTML, so a
@@ -1517,6 +1507,10 @@
     }).join('');
   }
 
+  // Cache of the hero's last computed figures so setBreakdownView() can
+  // redraw the tiles/ring on a click without recomputing from the data.
+  let breakdownHeroData = null;
+
   function renderBreakdown(mExp, activeCats, getAmtBDT, prevTotal) {
     const isRadone = currentProfile === 'radone';
     const total = mExp.reduce((s, e) => s + getAmtBDT(e), 0);
@@ -1524,32 +1518,86 @@
     document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(mExp, activeCats, getAmtBDT, total);
 
     document.getElementById('breakdown-hero-month').textContent = formatMonthLabel(selMonth);
-    document.getElementById('breakdown-hero-total').textContent = '৳' + total.toLocaleString();
-    const { svg, maxPct } = buildExpenseRing(groupByCategory(mExp, getAmtBDT), total);
-    document.getElementById('breakdown-hero-ring').innerHTML = svg;
-    document.getElementById('breakdown-hero-max').textContent = maxPct.toFixed(1) + '%';
-    const trendEl = document.getElementById('breakdown-hero-trend');
-    if (prevTotal > 0) {
-      const diffPct = ((total - prevTotal) / prevTotal) * 100;
-      const less = diffPct <= 0;
-      trendEl.style.display = 'inline-flex';
-      trendEl.style.background = less ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)';
-      trendEl.style.color = less ? '#34D399' : '#F87171';
-      trendEl.textContent = `${less ? '↘' : '↗'} গত মাসের চেয়ে ${Math.abs(diffPct).toFixed(0)}% ${less ? 'কম' : 'বেশি'}`;
-    } else {
-      trendEl.style.display = 'none';
-    }
 
     // Office breakdown mirrors the dashboard Office Financials widget:
     // Radone only, same OFFICE_EXP_CATS filter, entries opened by default
     // since there are only a few office categories.
-    document.getElementById('breakdown-office-panel').style.display = isRadone ? 'block' : 'none';
+    let officeTotal = 0;
     if (isRadone) {
       const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category));
-      const officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
+      officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
       document.getElementById('breakdown-office-amt').textContent = '৳' + officeTotal.toLocaleString();
       document.getElementById('breakdown-office-list').innerHTML = buildBreakdownHTML(officeExp, activeCats, getAmtBDT, officeTotal, true);
     }
+
+    breakdownHeroData = { isRadone, total, officeTotal, personalTotal: total - officeTotal, prevTotal, sortedCats: groupByCategory(mExp, getAmtBDT) };
+    renderBreakdownHero();
+    applyBreakdownPanels();
+  }
+
+  // Redraws only the hero card's lower body (Radone: Office/Personal
+  // Expense tiles; Efty: the original Total Expense + ring), from the
+  // cached breakdownHeroData — reused on every renderBreakdown() and on
+  // each tile click.
+  function renderBreakdownHero() {
+    if (!breakdownHeroData) return;
+    const { isRadone, total, officeTotal, personalTotal, prevTotal, sortedCats } = breakdownHeroData;
+    const body = document.getElementById('breakdown-hero-body');
+
+    if (!isRadone) {
+      const { svg, maxPct } = buildExpenseRing(sortedCats, total);
+      let trendHTML = '';
+      if (prevTotal > 0) {
+        const diffPct = ((total - prevTotal) / prevTotal) * 100;
+        const less = diffPct <= 0;
+        trendHTML = `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;border-radius:100px;padding:4px 12px;font-size:11.5px;font-weight:600;background:${less ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)'};color:${less ? '#34D399' : '#F87171'}">${less ? '↘' : '↗'} গত মাসের চেয়ে ${Math.abs(diffPct).toFixed(0)}% ${less ? 'কম' : 'বেশি'}</div>`;
+      }
+      body.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+          <div style="min-width:0">
+            <div style="font-size:10.5px;color:#94A3B8;letter-spacing:.06em;font-weight:600">TOTAL EXPENSE</div>
+            <div class="amount" style="font-size:25px;font-weight:800;margin-top:4px;white-space:nowrap">৳${total.toLocaleString()}</div>
+            ${trendHTML}
+          </div>
+          <div style="position:relative;width:96px;height:96px;flex-shrink:0">
+            ${svg}
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+              <div style="font-size:9.5px;color:#94A3B8">সর্বোচ্চ</div>
+              <div style="font-size:14px;font-weight:700">${maxPct.toFixed(1)}%</div>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const officeOn = breakdownView === 'office';
+    const personalOn = breakdownView === 'personal';
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div onclick="setBreakdownView('office')" style="cursor:pointer;border-radius:14px;padding:14px;min-width:0;background:${officeOn ? 'rgba(59,130,246,.22)' : 'rgba(255,255,255,.06)'};border:1px solid ${officeOn ? '#60A5FA' : 'rgba(255,255,255,.12)'}">
+          <div style="font-size:10px;color:#94A3B8;letter-spacing:.05em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">OFFICE EXPENSE</div>
+          <div class="amount" style="font-size:18px;font-weight:800;margin-top:4px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">৳${officeTotal.toLocaleString()}</div>
+        </div>
+        <div onclick="setBreakdownView('personal')" style="cursor:pointer;border-radius:14px;padding:14px;min-width:0;background:${personalOn ? 'rgba(16,185,129,.22)' : 'rgba(255,255,255,.06)'};border:1px solid ${personalOn ? '#34D399' : 'rgba(255,255,255,.12)'}">
+          <div style="font-size:10px;color:#94A3B8;letter-spacing:.05em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">PERSONAL EXPENSE</div>
+          <div class="amount" style="font-size:18px;font-weight:800;margin-top:4px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">৳${personalTotal.toLocaleString()}</div>
+        </div>
+      </div>`;
+  }
+
+  // Only one of the two Radone breakdown panels is visible at a time —
+  // picked via the hero tiles — so the page doesn't show both stacked.
+  // Efty has no office/personal split, so her single panel always shows.
+  function applyBreakdownPanels() {
+    const isRadone = currentProfile === 'radone';
+    document.getElementById('breakdown-personal-panel').style.display = (!isRadone || breakdownView === 'personal') ? 'block' : 'none';
+    document.getElementById('breakdown-office-panel').style.display = (isRadone && breakdownView === 'office') ? 'block' : 'none';
+  }
+
+  window.setBreakdownView = function(view) {
+    breakdownView = view;
+    renderBreakdownHero();
+    applyBreakdownPanels();
   }
 
   function renderAssetsStatement(pInc, pExp) {
