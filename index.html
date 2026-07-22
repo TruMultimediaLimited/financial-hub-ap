@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#10b981" />
+  <meta name="theme-color" content="#2563EB" />
   <meta name="description" content="Personal & Business Financial Management System for Radone & Efty" />
   <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23060d1a' width='192' height='192'/><text x='96' y='110' font-size='80' fill='%2310b981' text-anchor='middle' font-weight='bold' font-family='Inter'>₹</text></svg>" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23059669;stop-opacity:1' /><stop offset='100%' style='stop-color:%2310b981;stop-opacity:1' /></linearGradient></defs><rect fill='url(%23grad)' width='180' height='180' rx='40'/><text x='90' y='105' font-size='90' fill='white' text-anchor='middle' font-weight='bold' font-family='Inter'>₹</text></svg>" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232563EB' width='192' height='192'/><text x='96' y='110' font-size='80' fill='white' text-anchor='middle' font-weight='bold' font-family='Inter'>₹</text></svg>" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%232563EB;stop-opacity:1' /><stop offset='100%' style='stop-color:%233B82F6;stop-opacity:1' /></linearGradient></defs><rect fill='url(%23grad)' width='180' height='180' rx='40'/><text x='90' y='105' font-size='90' fill='white' text-anchor='middle' font-weight='bold' font-family='Inter'>₹</text></svg>" />
   <title>Radone & Efty - Financial Hub v11.3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,101 +15,104 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root{
-      /* Reduced to 3 semantic accents — green (positive/income), red
-         (negative/expense), teal/blue (primary actions/highlights).
-         Wallets/categories stay distinguishable via icon + label + a muted
-         tint, not a rainbow of hues. */
-      --pos:#34d399; --pos-dim:rgba(16,185,129,.14);
-      --neg:#f87171; --neg-dim:rgba(239,68,68,.14);
-      --acc:#38bdf8; --acc-dim:rgba(56,189,248,.14);
-      --surface-0:#060d1a; --surface-1:rgba(15,23,42,.7); --surface-2:rgba(30,41,59,.55);
+      /* Light theme matching the Tru ERP reference — white cards on a
+         soft gray page, 3 semantic accents (green/red/blue) plus amber
+         for due/warning states. Wallets/categories stay distinguishable
+         via icon + label + a muted tint, not a rainbow of hues. */
+      --pos:#16A34A; --pos-dim:#DCFCE7;
+      --neg:#DC2626; --neg-dim:#FEE2E2;
+      --acc:#2563EB; --acc-dim:#DBEAFE;
+      --warn:#D97706; --warn-dim:#FEF3C7;
+      --surface-0:#F8FAFC; --surface-1:#FFFFFF; --surface-2:#F1F5F9;
+      --border:#E2E8F0; --text:#0F172A; --text-muted:#64748B;
+      --shadow-card:0 2px 10px rgba(15,23,42,.06);
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100vh;background:#060d1a;color:#e2e8f0;font-family:'Inter',sans-serif;overflow-x:hidden;max-width:100vw}
+    html,body{min-height:100vh;background:var(--surface-0);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;max-width:100vw}
     ::-webkit-scrollbar{width:5px;height:5px}
-    ::-webkit-scrollbar-track{background:#0f172a}
-    ::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}
-    .glass{background:rgba(15,23,42,0.85);border:1px solid rgba(51,65,85,0.5);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-    .gem{background:rgba(6,78,59,0.18);border:1px solid rgba(16,185,129,0.22);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-    input,select,textarea{background:#0f172a!important;color:#e2e8f0!important;border:1px solid #1e293b!important;border-radius:8px!important;padding:8px 12px!important;font-size:14px;outline:none;width:100%}
-    input:focus,select:focus{border-color:#10b981!important}
-    .btn-p{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border-radius:8px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none}
-    .btn-s{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border-radius:8px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none}
-    .btn-p:disabled,.btn-s:disabled{opacity:.55;cursor:not-allowed}
-    .btn-d{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px}
-    .btn-e{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px}
-    .nav-link{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:#64748b}
-    .nav-link.on{background:rgba(16,185,129,.12);color:#10b981}
+    ::-webkit-scrollbar-track{background:var(--surface-2)}
+    ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
+    .glass{background:var(--surface-1);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-card)}
+    .gem{background:var(--pos-dim);border:1px solid #BBF7D0;border-radius:18px;box-shadow:var(--shadow-card)}
+    input,select,textarea{background:#fff!important;color:var(--text)!important;border:1px solid var(--border)!important;border-radius:10px!important;padding:8px 12px!important;font-size:14px;outline:none;width:100%}
+    input:focus,select:focus{border-color:var(--acc)!important}
+    .btn-p{background:var(--pos);color:#fff;border-radius:10px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none}
+    .btn-s{background:var(--acc);color:#fff;border-radius:10px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none}
+    .btn-p:disabled,.btn-s:disabled{opacity:.5;cursor:not-allowed}
+    .btn-d{background:var(--neg-dim);color:var(--neg);border:1px solid #FECACA;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+    .btn-e{background:var(--acc-dim);color:var(--acc);border:1px solid #BFDBFE;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+    .nav-link{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--text-muted)}
+    .nav-link.on{background:var(--acc-dim);color:var(--acc);font-weight:600}
     .sec{display:none}
     .sec.on{display:block}
     .amount{font-family:'JetBrains Mono',monospace}
     table{width:100%;border-collapse:collapse}
-    th{text-align:left;padding:10px 12px;font-size:11px;color:#475569;border-bottom:1px solid #0f172a;text-transform:uppercase}
-    td{padding:10px 12px;font-size:13px;border-bottom:1px solid rgba(15,23,42,.8);color:#cbd5e1;vertical-align:middle}
-    .modal-bg{position:fixed;inset:0;background:rgba(2,6,20,.82);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
-    .modal{background:#0c1526;border:1px solid #1e293b;border-radius:14px;padding:24px;width:100%;max-width:480px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;background:rgba(6,50,38,.97);border:1px solid #10b981;color:#6ee7b7}
-    .toast.err{background:rgba(60,10,10,.97);border:1px solid #ef4444;color:#fca5a5}
+    th{text-align:left;padding:10px 12px;font-size:11px;color:var(--text-muted);border-bottom:1px solid var(--border);text-transform:uppercase}
+    td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border);color:#334155;vertical-align:middle}
+    .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.4);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+    .modal{background:var(--surface-1);border:1px solid var(--border);border-radius:18px;padding:24px;width:100%;max-width:480px;box-shadow:0 20px 45px rgba(15,23,42,.18)}
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;background:#F0FDF4;border:1px solid #BBF7D0;color:#166534;box-shadow:var(--shadow-card)}
+    .toast.err{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
     .badge{display:inline-flex;padding:2px 8px;border-radius:100px;font-size:12px}
     .cc-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px;margin-bottom:16px}
-    .cc-bg{background:linear-gradient(135deg,#0f172a,#1e293b,#111827);border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:20px;position:relative;box-shadow:0 2px 10px rgba(0,0,0,.25);min-width:0}
+    .cc-bg{background:linear-gradient(135deg,#1e293b,#0f172a,#111827);border:1px solid rgba(148,163,184,.15);border-radius:16px;padding:20px;position:relative;box-shadow:0 8px 20px rgba(15,23,42,.18);min-width:0;color:#e2e8f0}
     .cc-dots{display:none;justify-content:center;gap:6px;margin-top:2px;margin-bottom:16px}
-    .cc-dots .dot{width:6px;height:6px;border-radius:50%;background:#334155;transition:background .15s,transform .15s}
+    .cc-dots .dot{width:6px;height:6px;border-radius:50%;background:#CBD5E1;transition:background .15s,transform .15s}
     .cc-dots .dot.on{background:var(--acc);transform:scale(1.3)}
     .chip{width:34px;height:26px;background:linear-gradient(135deg,#c9961a,#f0c040);border-radius:4px;margin-bottom:12px}
     details.bd-cat summary{cursor:pointer;list-style:none}
     details.bd-cat summary::-webkit-details-marker{display:none}
     .clickable{cursor:pointer}
-    #conn-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#7f1d1d;color:#fecaca;text-align:center;font-size:13px;padding:8px}
-    #login-gate{position:fixed;inset:0;z-index:20000;background:#060d1a;display:flex;align-items:center;justify-content:center;padding:20px}
+    #conn-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#FEE2E2;color:#991B1B;border-bottom:1px solid #FECACA;text-align:center;font-size:13px;padding:8px}
+    #login-gate{position:fixed;inset:0;z-index:20000;background:var(--surface-0);display:flex;align-items:center;justify-content:center;padding:20px}
 
     /* ---- Collapsible "heavy" section panels (reuses the breakdown-tab
        details/summary pattern) ---- */
     details.panel-collapse summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
     details.panel-collapse summary::-webkit-details-marker{display:none}
-    details.panel-collapse summary .chev{transition:transform .15s;color:#475569;font-size:12px}
+    details.panel-collapse summary .chev{transition:transform .15s;color:var(--text-muted);display:inline-flex}
     details.panel-collapse[open] summary .chev{transform:rotate(90deg)}
 
     /* ---- Shared visual-hierarchy primitives ---- */
-    .icon-badge{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:16px;flex-shrink:0}
-    .stat-tile{background:var(--surface-2);border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;min-height:64px}
-    .stat-tile .stat-label{font-size:10.5px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:5px;min-width:0}
+    .icon-badge{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;flex-shrink:0}
+    .stat-tile{background:var(--surface-2);border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;min-height:64px}
+    .stat-tile .stat-label{font-size:10.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:5px;min-width:0}
     .stat-tile .stat-label span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-    .stat-tile .stat-val{font-size:15px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .stat-tile .stat-val{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .kpi-amt{font-size:24px}
     #shop-fin-grid>div{min-width:0}
     #shop-fin-grid .amount{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .row-hover{border-radius:8px;padding:8px;margin:0 -8px;transition:background .12s;min-width:0}
-    .row-hover:hover,.row-hover:active{background:rgba(148,163,184,.08)}
+    .row-hover:hover,.row-hover:active{background:var(--surface-2)}
     .row-hover .row-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .row-hover .row-amt{flex-shrink:0;white-space:nowrap;margin-left:10px}
 
     /* ---- Profile dropdown (header) ---- */
     .prof-dd{position:relative}
-    .prof-dd-trigger{display:flex;align-items:center;gap:9px;background:rgba(15,23,42,.7);border:1px solid #334155;border-radius:12px;padding:8px 14px 8px 8px;cursor:pointer;font-size:13.5px;font-weight:600;color:#e2e8f0;min-height:44px}
+    .prof-dd-trigger{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 14px 8px 8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text);min-height:44px;box-shadow:var(--shadow-card)}
     .prof-dd-trigger:hover{border-color:var(--acc)}
     .prof-dd-trigger .icon-badge{background:var(--acc-dim);width:28px;height:28px;font-size:14px}
-    .prof-dd-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:170px;background:#0c1526;border:1px solid #1e293b;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.45);padding:6px;z-index:400}
+    .prof-dd-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:170px;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.14);padding:6px;z-index:400}
     .prof-dd.open .prof-dd-menu{display:block}
-    .prof-dd-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:#cbd5e1}
-    .prof-dd-item:hover{background:rgba(56,189,248,.1);color:#e2e8f0}
+    .prof-dd-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text)}
+    .prof-dd-item:hover{background:var(--acc-dim);color:var(--acc)}
 
     /* ---- Mobile bottom tab bar + More sheet ---- */
     #bottom-nav{display:none}
-    .bn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:44px;flex:1;cursor:pointer;color:#64748b;font-size:10.5px;font-weight:600;padding:6px 2px}
-    .bn-item .bn-ic{font-size:18px;line-height:1}
-    .bn-item.on{color:var(--pos)}
+    .bn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:44px;flex:1;cursor:pointer;color:var(--text-muted);font-size:10.5px;font-weight:600;padding:6px 2px}
+    .bn-item .bn-ic{line-height:1}
+    .bn-item.on{color:var(--acc)}
     #more-sheet{display:none}
     #more-sheet.open{display:flex}
-    .more-row{display:flex;align-items:center;gap:12px;padding:13px 18px;font-size:14px;color:#cbd5e1;cursor:pointer;min-height:44px}
-    .more-row:hover,.more-row.on{background:rgba(56,189,248,.08);color:#e2e8f0}
+    .more-row{display:flex;align-items:center;gap:12px;padding:13px 18px;font-size:14px;color:var(--text);cursor:pointer;min-height:44px}
+    .more-row:hover,.more-row.on{background:var(--acc-dim);color:var(--acc)}
 
     /* ---- Mobile / desktop split (first responsive breakpoint this app
        has ever had — previously the sidebar was always fixed-width) ---- */
     @media (max-width: 767px){
       #sidebar{display:none!important}
       #main{margin-left:0!important;padding:16px!important;padding-bottom:84px!important;max-width:100vw;overflow-x:hidden}
-      #bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:500;background:rgba(6,10,20,.98);border-top:1px solid #0f172a;padding:4px 2px env(max(env(safe-area-inset-bottom),4px));backdrop-filter:blur(6px)}
+      #bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:500;background:#fff;border-top:1px solid var(--border);padding:4px 2px env(max(env(safe-area-inset-bottom),4px));box-shadow:0 -4px 16px rgba(15,23,42,.06)}
       #kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
       #kpi-grid>*:nth-child(3){grid-column:1 / -1}
       .kpi-amt{font-size:19px}
@@ -127,30 +130,30 @@
 <body>
 
 <!-- CONNECTION STATUS BANNER (shows only if Supabase fails) -->
-<div id="conn-banner">⚠️ Cloud sync issue — check console (F12) for details. Data shown may be stale or empty.</div>
+<div id="conn-banner"><span data-icon="alertTriangle" data-icon-size="15" style="margin-right:5px"></span>Cloud sync issue — check console (F12) for details. Data shown may be stale or empty.</div>
 
 <!-- LOGIN GATE (shown until a Supabase Auth session exists) -->
 <div id="login-gate">
   <form id="login-form" class="glass" style="border-radius:16px;padding:32px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:14px">
     <div>
-      <div style="font-size:18px;font-weight:700;color:#f1f5f9">🔒 Financial Hub</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px"><span data-icon="lock" data-icon-size="19" style="color:var(--acc)"></span>Financial Hub</div>
       <div style="font-size:12px;color:#475569;margin-top:2px">Radone & Efty শেয়ার্ড অ্যাকসেস</div>
     </div>
     <input type="email" id="login-email" placeholder="Email" autocomplete="username" required />
     <input type="password" id="login-pass" placeholder="Password" autocomplete="current-password" required />
     <button type="submit" class="btn-p" id="btn-login" style="justify-content:center">Login</button>
-    <div id="login-err" style="display:none;color:#f87171;font-size:12.5px"></div>
+    <div id="login-err" style="display:none;color:var(--neg);font-size:12.5px"></div>
   </form>
 </div>
 
 <!-- SIDEBAR (desktop/tablet ≥768px only) -->
-<div id="sidebar" style="display:none;position:fixed;left:0;top:0;height:100%;width:232px;background:rgba(6,10,20,.97);border-right:1px solid #0f172a;flex-direction:column;padding:20px 14px;gap:4px">
-  <div style="padding:4px 0 12px 0; border-bottom:1px solid #1e293b; margin-bottom:12px">
-    <div style="font-size:14px;font-weight:700;color:#f1f5f9">Wealth Hub</div>
+<div id="sidebar" style="display:none;position:fixed;left:0;top:0;height:100%;width:232px;background:#fff;border-right:1px solid var(--border);flex-direction:column;padding:20px 14px;gap:4px">
+  <div style="padding:4px 0 12px 0; border-bottom:1px solid var(--border); margin-bottom:12px">
+    <div style="font-size:14px;font-weight:700;color:var(--text)">Wealth Hub</div>
     <div style="font-size:11px;color:#475569" id="sub-title">Personal Core</div>
   </div>
   <nav style="display:flex;flex-direction:column;gap:2px" id="nav-container"></nav>
-  <button id="btn-logout" style="margin-top:auto;width:100%;background:transparent;color:#64748b;border:1px solid #1e293b;border-radius:8px;padding:8px;cursor:pointer;font-size:12px">🚪 Logout</button>
+  <button id="btn-logout" style="margin-top:auto;width:100%;background:transparent;color:#64748b;border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px"><span data-icon="logOut" data-icon-size="15"></span>Logout</button>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -169,23 +172,23 @@
     <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass" id="kpi-inc-card" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
-          <span class="icon-badge" style="background:var(--pos-dim)">💰</span>
+          <span class="icon-badge" style="background:var(--pos-dim);color:var(--pos)" data-icon="wallet"></span>
           <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Total Earnings</div>
         </div>
         <div class="amount kpi-amt" style="font-weight:700;color:var(--pos);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="kpi-inc">৳0</div>
       </div>
       <div class="glass clickable" id="kpi-exp-card" title="বিস্তারিত খরচের হিসাব দেখুন" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
-          <span class="icon-badge" style="background:var(--neg-dim)">💸</span>
+          <span class="icon-badge" style="background:var(--neg-dim);color:var(--neg)" data-icon="receipt"></span>
           <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Total Expenses</div>
         </div>
         <div class="amount kpi-amt" style="font-weight:700;color:var(--neg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="kpi-exp">৳0</div>
-        <div style="font-size:10.5px;color:#475569;margin-top:8px">🧾 ক্লিক করে ব্রেকডাউন দেখুন</div>
+        <div style="font-size:10.5px;color:#475569;margin-top:8px;display:flex;align-items:center;gap:4px"><span data-icon="pie" data-icon-size="12"></span>ক্লিক করে ব্রেকডাউন দেখুন</div>
       </div>
       <div class="gem" id="kpi-sav-card" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
-          <span class="icon-badge" style="background:var(--acc-dim)">🏦</span>
-          <div style="font-size:11px;color:#10b981;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Net Savings</div>
+          <span class="icon-badge" style="background:var(--acc-dim);color:var(--acc)" data-icon="trendUp"></span>
+          <div style="font-size:11px;color:var(--pos);font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Net Savings</div>
         </div>
         <div class="amount kpi-amt" style="font-weight:700" id="kpi-sav">৳0</div>
       </div>
@@ -195,14 +198,14 @@
     <div id="office-personal-grid" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
-          <span class="icon-badge" style="background:var(--neg-dim)">🏢</span>
+          <span class="icon-badge" style="background:var(--neg-dim);color:var(--neg)" data-icon="building"></span>
           <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Office Expense</div>
         </div>
         <div class="amount kpi-amt" style="font-weight:700;color:var(--neg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="dash-office-exp">৳0</div>
       </div>
       <div class="glass" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
-          <span class="icon-badge" style="background:var(--neg-dim)">🏠</span>
+          <span class="icon-badge" style="background:var(--neg-dim);color:var(--neg)" data-icon="home"></span>
           <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Personal Expense</div>
         </div>
         <div class="amount kpi-amt" style="font-weight:700;color:var(--neg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="dash-personal-exp">৳0</div>
@@ -213,14 +216,14 @@
     <div id="office-payment-assets-grid" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px">
       <div class="glass" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
-          <span class="icon-badge" style="background:var(--pos-dim)">🏢</span>
+          <span class="icon-badge" style="background:var(--pos-dim);color:var(--pos)" data-icon="building"></span>
           <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Office Payment</div>
         </div>
         <div class="amount kpi-amt" style="font-weight:700;color:var(--pos);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="dash-office-payment">৳0</div>
       </div>
       <div class="glass clickable" id="dash-assets-card" title="বিস্তারিত দেখুন — Assets ট্যাব" style="border-radius:14px;padding:18px;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;min-width:0">
-          <span class="icon-badge" style="background:var(--acc-dim)">🏦</span>
+          <span class="icon-badge" style="background:var(--acc-dim);color:var(--acc)" data-icon="landmark"></span>
           <div style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Assets</div>
         </div>
         <div class="amount kpi-amt" style="font-weight:700;color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="dash-assets-total">৳0</div>
@@ -230,23 +233,23 @@
 
     <!-- Kurti Paradise Shop Summary Widget (Efty only) -->
     <div id="shop-financials-widget" class="glass" style="border-radius:14px;padding:20px;margin-bottom:16px;background:linear-gradient(135deg, rgba(219,39,119,0.1), rgba(236,72,153,0.05))">
-      <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:14px">🧵 Kurti Paradise — Shop Business Summary (This Month)</div>
+      <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:14px;display:flex;align-items:center;gap:6px"><span data-icon="store" data-icon-size="15" style="color:#DB2777"></span>Kurti Paradise — Shop Business Summary (This Month)</div>
       <div id="shop-fin-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
         <div>
           <div style="font-size:11px;color:#475569;margin-bottom:6px">Staff & Service Cost</div>
-          <div class="amount" style="font-size:20px;font-weight:700;color:#f87171" id="shop-staff-cost">৳0</div>
+          <div class="amount" style="font-size:20px;font-weight:700;color:var(--neg)" id="shop-staff-cost">৳0</div>
         </div>
         <div>
           <div style="font-size:11px;color:#475569;margin-bottom:6px">Product Purchase Cost</div>
-          <div class="amount" style="font-size:20px;font-weight:700;color:#f87171" id="shop-purchase-cost">৳0</div>
+          <div class="amount" style="font-size:20px;font-weight:700;color:var(--neg)" id="shop-purchase-cost">৳0</div>
         </div>
         <div>
           <div style="font-size:11px;color:#475569;margin-bottom:6px">Total Sale</div>
-          <div class="amount" style="font-size:20px;font-weight:700;color:#34d399" id="shop-total-sale">৳0</div>
+          <div class="amount" style="font-size:20px;font-weight:700;color:var(--pos)" id="shop-total-sale">৳0</div>
         </div>
         <div>
           <div style="font-size:11px;color:#475569;margin-bottom:6px">Profit/Loss (20% of Sale)</div>
-          <div class="amount" style="font-size:20px;font-weight:700;color:#10b981" id="shop-profit">৳0</div>
+          <div class="amount" style="font-size:20px;font-weight:700;color:var(--pos)" id="shop-profit">৳0</div>
         </div>
       </div>
     </div>
@@ -305,16 +308,16 @@
   <div id="sec-breakdown" class="sec">
     <div class="glass" style="border-radius:14px;padding:20px;margin-bottom:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px">
-        <div style="font-size:15px;font-weight:600;color:#94a3b8">💸 Total Expense Breakdown (This Month)</div>
-        <div class="amount" style="font-size:18px;font-weight:700;color:#f87171" id="breakdown-total-amt">৳0</div>
+        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="receipt" data-icon-size="16" style="color:var(--neg)"></span>Total Expense Breakdown (This Month)</div>
+        <div class="amount" style="font-size:18px;font-weight:700;color:var(--neg)" id="breakdown-total-amt">৳0</div>
       </div>
       <div style="font-size:11.5px;color:#475569;margin-bottom:14px">ক্যাটাগরিতে ক্লিক করলে ভেতরের খরচগুলো দেখা যাবে</div>
       <div id="breakdown-total-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
     <div class="glass" id="breakdown-office-panel" style="border-radius:14px;padding:20px;background:linear-gradient(135deg, rgba(37,99,235,0.1), rgba(59,130,246,0.05))">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
-        <div style="font-size:15px;font-weight:600;color:#94a3b8">📊 Office Expense Breakdown (This Month)</div>
-        <div class="amount" style="font-size:18px;font-weight:700;color:#f87171" id="breakdown-office-amt">৳0</div>
+        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="building" data-icon-size="16" style="color:var(--acc)"></span>Office Expense Breakdown (This Month)</div>
+        <div class="amount" style="font-size:18px;font-weight:700;color:var(--neg)" id="breakdown-office-amt">৳0</div>
       </div>
       <div id="breakdown-office-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
@@ -332,7 +335,7 @@
     <div class="cc-grid" id="main-cc-grid"></div>
     <div class="cc-dots" id="main-cc-dots"></div>
     <div class="glass" style="border-radius:14px;padding:20px;max-width:480px;margin-top:20px">
-      <div style="font-size:14px;font-weight:600;color:#3b82f6;margin-bottom:12px">💵 Quick Card Bill Payment (Auto-logs Expense)</div>
+      <div style="font-size:14px;font-weight:600;color:var(--acc);margin-bottom:12px;display:flex;align-items:center;gap:7px"><span data-icon="wallet" data-icon-size="16"></span>Quick Card Bill Payment (Auto-logs Expense)</div>
       <div style="display:flex;flex-direction:column;gap:12px">
         <select id="pay-cc-select"><option value="">Select Card to Pay</option></select>
         <select id="pay-cc-method">
@@ -349,7 +352,7 @@
 
     <!-- EMI TRACKER -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin:28px 0 16px">
-      <div style="font-size:15px;font-weight:600;color:#94a3b8">📆 Active EMI Purchases</div>
+      <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="calendar" data-icon-size="16"></span>Active EMI Purchases</div>
       <button class="btn-s" id="btn-add-emi">+ Add EMI Purchase</button>
     </div>
     <div class="glass" style="border-radius:14px;overflow:hidden">
@@ -365,24 +368,24 @@
   <!-- DEBTS LEDGER -->
   <div id="sec-debts" class="sec">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-      <div class="glass" style="border-radius:14px;padding:16px;border-left:4px solid #10b981">
+      <div class="glass" style="border-radius:14px;padding:16px;border-left:4px solid var(--pos)">
         <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase">Total Receivables (আমি পাবো - ৳)</div>
-        <div class="amount text-emerald-400 font-bold text-xl mt-1" id="dash-total-receivable">৳0</div>
+        <div class="amount text-emerald-700 font-bold text-xl mt-1" id="dash-total-receivable">৳0</div>
       </div>
-      <div class="glass" style="border-radius:14px;padding:16px;border-left:4px solid #ef4444">
+      <div class="glass" style="border-radius:14px;padding:16px;border-left:4px solid var(--neg)">
         <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase" id="title-payable-widget">Total Payables (আমি দেবো)</div>
-        <div class="amount text-red-400 font-bold text-xl mt-1" id="dash-total-payable">৳0</div>
+        <div class="amount text-red-700 font-bold text-xl mt-1" id="dash-total-payable">৳0</div>
       </div>
     </div>
 
     <div style="display:none; grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px" id="usd-kpi-row">
-      <div class="glass" style="border-radius:14px;padding:16px;border-left:4px solid #f59e0b">
+      <div class="glass" style="border-radius:14px;padding:16px;border-left:4px solid var(--warn)">
         <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase">USD Receivables (সেলারদের কাছে পাবো - $)</div>
-        <div class="amount text-amber-400 font-bold text-xl mt-1" id="dash-usd-receivable">$0</div>
+        <div class="amount text-amber-700 font-bold text-xl mt-1" id="dash-usd-receivable">$0</div>
       </div>
-      <div class="glass" style="border-radius:14px;padding:16px;border-left:4px solid #ec4899">
+      <div class="glass" style="border-radius:14px;padding:16px;border-left:4px solid #DB2777">
         <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase">USD Payables (সাপ্লায়ার/কাস্টমার পাবে - $)</div>
-        <div class="amount text-pink-400 font-bold text-xl mt-1" id="dash-usd-payable">$0</div>
+        <div class="amount text-pink-700 font-bold text-xl mt-1" id="dash-usd-payable">$0</div>
       </div>
     </div>
 
@@ -404,11 +407,11 @@
   <div id="sec-wealth" class="sec">
     <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px">
       <div class="glass" style="border-radius:14px;padding:20px">
-        <div style="font-size:15px;font-weight:600;color:#34d399;margin-bottom:14px">🏦 Asset & Investment Statement</div>
+        <div style="font-size:15px;font-weight:600;color:var(--pos);margin-bottom:14px;display:flex;align-items:center;gap:7px"><span data-icon="landmark" data-icon-size="17"></span>Asset & Investment Statement</div>
         <div style="display:flex;flex-direction:column;gap:12px" id="asset-statement-list"></div>
       </div>
       <div class="glass" style="border-radius:14px;padding:20px">
-        <div style="font-size:15px;font-weight:600;color:#94a3b8;margin-bottom:14px">📈 Monthly Wealth Snapshot Lock</div>
+        <div style="font-size:15px;font-weight:600;color:#94a3b8;margin-bottom:14px;display:flex;align-items:center;gap:7px"><span data-icon="trendUp" data-icon-size="16"></span>Monthly Wealth Snapshot Lock</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <input type="number" id="w-open" placeholder="Opening Capital / Asset (Month Start ৳)" />
           <input type="number" id="w-close" placeholder="Closing Capital / Asset (Month End ৳)" />
@@ -438,10 +441,10 @@
 
 <!-- MOBILE "MORE" SHEET (<768px only) -->
 <div id="more-sheet" class="modal-bg" style="align-items:flex-end;padding:0">
-  <div style="background:#0c1526;border:1px solid #1e293b;border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)">
+  <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -8px 30px rgba(15,23,42,.12)">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 8px">
-      <h3 style="font-size:15px;font-weight:700;color:#f1f5f9">More</h3>
-      <button id="btn-close-more" style="color:#475569;font-size:18px">✕</button>
+      <h3 style="font-size:15px;font-weight:700;color:var(--text)">More</h3>
+      <button id="btn-close-more" style="color:#475569"><span data-icon="x" data-icon-size="18"></span></button>
     </div>
     <div id="more-sheet-list" style="padding:4px 0 10px"></div>
   </div>
@@ -452,7 +455,7 @@
   <div class="modal">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <h3 style="font-size:16px;font-weight:700" id="modal-title">Entry Form</h3>
-      <button id="btn-close-modal" style="color:#475569">✕</button>
+      <button id="btn-close-modal" style="color:#475569"><span data-icon="x" data-icon-size="18"></span></button>
     </div>
     <div id="form-body" style="display:flex;flex-direction:column;gap:12px"></div>
   </div>
@@ -479,6 +482,49 @@
   // stray '<' or '"' in a name/description can't run as markup/script.
   function esc(str) {
     return String(str ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+  }
+
+  // ---- Minimal line-art icon set (matches the Tru ERP visual reference) ----
+  // Each entry is the inner markup of a 24x24 viewBox; icon() wraps it with
+  // stroke=currentColor so the surrounding element's CSS color drives the
+  // icon color. Decorative UI chrome only — never used for wallet/payment
+  // dropdown option values or category-label dictionaries, since those
+  // strings are matched against data already saved in Supabase and an
+  // <option> can't render an SVG anyway.
+  const ICONS = {
+    grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+    wallet: '<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.3"/>',
+    receipt: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>',
+    pie: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12l7 4"/>',
+    card: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18"/><path d="M7 15h4"/>',
+    arrowDownTray: '<path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/>',
+    arrowUpTray: '<path d="M12 20V9"/><path d="M8 13l4-4 4 4"/><path d="M5 19h14"/>',
+    landmark: '<path d="M12 3L3 9H21Z"/><path d="M4 9v9M9 9v9M15 9v9M20 9v9"/><path d="M3 20h18"/>',
+    more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+    chevronDown: '<path d="M5 8.5l7 7 7-7"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    edit: '<path d="M17 3L21 7L9 19L5 20L6 16Z"/>',
+    settings: '<path d="M3 7h4M11 7h10"/><circle cx="7" cy="7" r="2"/><path d="M3 15h10M17 15h4"/><circle cx="15" cy="15" r="2"/>',
+    calendar: '<rect x="3.5" y="5" width="17" height="16" rx="2.2"/><path d="M3.5 10h17"/><path d="M8 3v4M16 3v4"/>',
+    alertTriangle: '<path d="M12 4L2.5 20H21.5Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/>',
+    lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+    logOut: '<rect x="4" y="4" width="7" height="16" rx="1.6"/><path d="M14 8L19 12L14 16"/><path d="M19 12H9"/>',
+    building: '<rect x="5" y="3" width="14" height="18" rx="1.4"/><rect x="8" y="7" width="2.4" height="2.4"/><rect x="13.6" y="7" width="2.4" height="2.4"/><rect x="8" y="12" width="2.4" height="2.4"/><rect x="13.6" y="12" width="2.4" height="2.4"/><path d="M9 21v-4h6v4"/>',
+    home: '<path d="M4 11L12 4L20 11"/><path d="M6 10V20H18V10"/><path d="M10 20V15H14V20"/>',
+    store: '<path d="M4 10L5 4H19L20 10"/><path d="M4 10V20H20V10"/><path d="M9.5 20V14H14.5V20"/>',
+    trendUp: '<path d="M3 16L9 10L13 14L21 6"/><path d="M15 6H21V12"/>',
+    checkCircle: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/>',
+    xCircle: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>'
+  };
+  function icon(name, size) {
+    return `<svg width="${size||18}" height="${size||18}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0">${ICONS[name] || ''}</svg>`;
+  }
+  // Fills in icons for static HTML (markup that isn't built from a JS
+  // template string) — <span data-icon="name" data-icon-size="18"></span>.
+  function renderStaticIcons() {
+    document.querySelectorAll('[data-icon]').forEach(el => {
+      el.innerHTML = icon(el.dataset.icon, el.dataset.iconSize && parseInt(el.dataset.iconSize));
+    });
   }
 
   const RADONE_CATS = {
@@ -530,6 +576,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
+    renderStaticIcons();
     buildMonthSel();
     setupProfileSwitchers();
     renderSidebarMenu();
@@ -677,12 +724,12 @@
   function renderSidebarMenu() {
     const isRadone = currentProfile === 'radone';
     document.getElementById('nav-container').innerHTML = `
-      <div class="nav-link" data-sec="dashboard">📊 Dashboard</div>
-      <div class="nav-link" data-sec="income">💰 ${isRadone ? 'Payment' : 'Income Log'}</div>
-      <div class="nav-link" data-sec="expenses">💸 Expenses Log</div>
-      <div class="nav-link" data-sec="breakdown">🧾 খরচের হিসাব</div>
-      ${isRadone ? '<div class="nav-link" data-sec="creditcard">💳 Card</div><div class="nav-link" data-sec="debts">🧾 Receivables</div><div class="nav-link" data-sec="debts">💸 Payables</div>' : ''}
-      <div class="nav-link" data-sec="wealth">🏦 Assets</div>
+      <div class="nav-link" data-sec="dashboard">${icon('grid')} Dashboard</div>
+      <div class="nav-link" data-sec="income">${icon('wallet')} ${isRadone ? 'Payment' : 'Income Log'}</div>
+      <div class="nav-link" data-sec="expenses">${icon('receipt')} Expenses Log</div>
+      <div class="nav-link" data-sec="breakdown">${icon('pie')} খরচের হিসাব</div>
+      ${isRadone ? `<div class="nav-link" data-sec="creditcard">${icon('card')} Card</div><div class="nav-link" data-sec="debts">${icon('arrowDownTray')} Receivables</div><div class="nav-link" data-sec="debts">${icon('arrowUpTray')} Payables</div>` : ''}
+      <div class="nav-link" data-sec="wealth">${icon('landmark')} Assets</div>
     `;
     // Keep the section the user was on across re-renders; Radone-only
     // sections (cards/debts) fall back to Dashboard when Efty is active.
@@ -723,16 +770,17 @@
   // "More" is a list of {sec,icon,label} rows rather than bare section
   // keys because Receivables/Payables are two separate rows that both open
   // the same sec-debts page (no data split, just two doorways to it). ----
+  // icon values here are ICONS keys (rendered via icon()), not emoji.
   const NAV_LABELS = {
-    dashboard: { icon: '📊', label: 'Dashboard' },
-    expenses: { icon: '💸', label: 'Expenses' },
-    breakdown: { icon: '🧾', label: 'খরচের হিসাব' }
+    dashboard: { icon: 'grid', label: 'Dashboard' },
+    expenses: { icon: 'receipt', label: 'Expenses' },
+    breakdown: { icon: 'pie', label: 'খরচের হিসাব' }
   };
 
   // Income's label follows the same Radone="Payment" / Efty="Income" split
   // used everywhere else.
   function navLabel(sec) {
-    if (sec === 'income') return { icon: '💰', label: currentProfile === 'radone' ? 'Payment' : 'Income' };
+    if (sec === 'income') return { icon: 'wallet', label: currentProfile === 'radone' ? 'Payment' : 'Income' };
     return NAV_LABELS[sec];
   }
 
@@ -744,12 +792,12 @@
     const main = ['dashboard', 'income', 'expenses', 'breakdown'];
     const more = isRadone
       ? [
-          { sec: 'creditcard', icon: '💳', label: 'Card' },
-          { sec: 'debts', icon: '🧾', label: 'Receivables' },
-          { sec: 'debts', icon: '💸', label: 'Payables' },
-          { sec: 'wealth', icon: '🏦', label: 'Assets' }
+          { sec: 'creditcard', icon: 'card', label: 'Card' },
+          { sec: 'debts', icon: 'arrowDownTray', label: 'Receivables' },
+          { sec: 'debts', icon: 'arrowUpTray', label: 'Payables' },
+          { sec: 'wealth', icon: 'landmark', label: 'Assets' }
         ]
-      : [{ sec: 'wealth', icon: '🏦', label: 'Assets' }];
+      : [{ sec: 'wealth', icon: 'landmark', label: 'Assets' }];
     return { main, more };
   }
 
@@ -758,9 +806,9 @@
     const moreIsActive = more.some(m => m.sec === activeSec);
     const items = main.map(sec => {
       const n = navLabel(sec);
-      return `<div class="bn-item${sec === activeSec ? ' on' : ''}" data-sec="${sec}"><span class="bn-ic">${n.icon}</span><span>${n.label}</span></div>`;
+      return `<div class="bn-item${sec === activeSec ? ' on' : ''}" data-sec="${sec}"><span class="bn-ic">${icon(n.icon, 19)}</span><span>${n.label}</span></div>`;
     }).join('');
-    document.getElementById('bottom-nav').innerHTML = items + `<div class="bn-item${moreIsActive ? ' on' : ''}" id="bn-more"><span class="bn-ic">⋯</span><span>More</span></div>`;
+    document.getElementById('bottom-nav').innerHTML = items + `<div class="bn-item${moreIsActive ? ' on' : ''}" id="bn-more"><span class="bn-ic">${icon('more', 19)}</span><span>More</span></div>`;
     document.querySelectorAll('#bottom-nav .bn-item[data-sec]').forEach(el => {
       el.addEventListener('click', () => goToSec(el.dataset.sec));
     });
@@ -770,7 +818,7 @@
   function renderMoreSheet() {
     const { more } = bottomNavSecs();
     document.getElementById('more-sheet-list').innerHTML = more.map(m => {
-      return `<div class="more-row${m.sec === activeSec ? ' on' : ''}" data-sec="${m.sec}"><span>${m.icon}</span><span>${m.label}</span></div>`;
+      return `<div class="more-row${m.sec === activeSec ? ' on' : ''}" data-sec="${m.sec}"><span>${icon(m.icon, 19)}</span><span>${m.label}</span></div>`;
     }).join('');
     document.querySelectorAll('#more-sheet-list .more-row').forEach(el => {
       el.addEventListener('click', () => goToSec(el.dataset.sec));
@@ -823,7 +871,7 @@
     if (!isRadone) {
       document.getElementById('kpi-inc').textContent = '৳' + tInc.toLocaleString();
       document.getElementById('kpi-sav').textContent = (net >= 0 ? '৳' : '-৳') + Math.abs(net).toLocaleString();
-      document.getElementById('kpi-sav').style.color = net >= 0 ? '#34d399' : '#f87171';
+      document.getElementById('kpi-sav').style.color = net >= 0 ? 'var(--pos)' : 'var(--neg)';
     }
 
     // Header/nav labels: Radone tracks expenses only, so "Income" is
@@ -893,19 +941,19 @@
       return `
         <div class="cc-bg">
           <div style="display:flex; justify-content:space-between; align-items:flex-start">
-            <h4 class="font-bold text-blue-400">${esc(c.card_name)}</h4><div class="chip"></div>
+            <h4 class="font-bold text-blue-700">${esc(c.card_name)}</h4><div class="chip"></div>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px" class="text-xs">
-            <div><span class="text-gray-500">Total Limit (লিমিট)</span><p class="amount font-semibold">৳${total.toLocaleString()}</p></div>
-            <div><span class="text-emerald-400">Available (আরো খরচ করা যাবে)</span><p class="amount text-emerald-400 font-bold">৳${freeLimit.toLocaleString()}</p></div>
-            <div><span class="text-red-400">Total Due (মোট বাকি)</span><p class="amount text-red-400 font-semibold">৳${due.toLocaleString()}</p></div>
-            <div><span class="text-amber-400">Month's Bill (এই মাসের বিল)</span><p class="amount text-amber-300">৳${bill.toLocaleString()}</p></div>
+            <div><span class="text-slate-500">Total Limit (লিমিট)</span><p class="amount font-semibold">৳${total.toLocaleString()}</p></div>
+            <div><span class="text-emerald-700">Available (আরো খরচ করা যাবে)</span><p class="amount text-emerald-700 font-bold">৳${freeLimit.toLocaleString()}</p></div>
+            <div><span class="text-red-700">Total Due (মোট বাকি)</span><p class="amount text-red-700 font-semibold">৳${due.toLocaleString()}</p></div>
+            <div><span class="text-amber-700">Month's Bill (এই মাসের বিল)</span><p class="amount text-amber-700">৳${bill.toLocaleString()}</p></div>
           </div>
-          <div class="text-xs border-t border-gray-800 pt-2 mt-2 flex justify-between items-center">
-            <span>📅 Due Date: <b>${esc(c.due_date)||'—'}</b></span>
+          <div class="text-xs border-t border-slate-200 pt-2 mt-2 flex justify-between items-center">
+            <span>${icon('calendar',13)} Due Date: <b>${esc(c.due_date)||'—'}</b></span>
             <div style="display:flex; gap:4px">
-              <button class="btn-e" style="padding:2px 6px" onclick="openEditModal('card','${c.id}')">⚙ Config</button>
-              <button class="btn-d" style="padding:2px 6px" onclick="deleteMasterRecord('credit_card_status','${c.id}')">✕</button>
+              <button class="btn-e" style="padding:2px 6px" onclick="openEditModal('card','${c.id}')">${icon('settings',13)} Config</button>
+              <button class="btn-d" style="padding:2px 6px" onclick="deleteMasterRecord('credit_card_status','${c.id}')">${icon('x',13)}</button>
             </div>
           </div>
         </div>
@@ -924,30 +972,30 @@
 
     document.getElementById('inc-tbody').innerHTML = mInc.map(i => {
       let comp = i.category_group || 'Personal';
-      let cBadge = 'bg-purple-950 text-purple-400';
-      if(comp.includes('Multimedia')) cBadge = 'bg-blue-950 text-blue-400';
-      if(comp.includes('Truphoto')) cBadge = 'bg-teal-950 text-teal-400';
-      if(comp.includes('4R')) cBadge = 'bg-emerald-950 text-emerald-400';
+      let cBadge = 'bg-purple-100 text-purple-700';
+      if(comp.includes('Multimedia')) cBadge = 'bg-blue-100 text-blue-700';
+      if(comp.includes('Truphoto')) cBadge = 'bg-teal-100 text-teal-700';
+      if(comp.includes('4R')) cBadge = 'bg-emerald-100 text-emerald-700';
 
       return `<tr>
         <td>${i.date}</td>
         <td><b>${esc(i.source)}</b></td>
         <td><span class="badge ${cBadge}">${esc(comp)}</span></td>
-        <td><span class="text-amber-400 font-medium">${esc(i.project_tag) || '—'}</span></td>
-        <td><span class="badge bg-slate-800">${esc(i.notes)}</span></td>
-        <td style="text-align:right" class="amount text-emerald-400">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</td>
-        <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('income','${i.id}')">✍️ Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_income','${i.id}')">✕</button></td>
+        <td><span class="text-amber-700 font-medium">${esc(i.project_tag) || '—'}</span></td>
+        <td><span class="badge bg-slate-100">${esc(i.notes)}</span></td>
+        <td style="text-align:right" class="amount text-emerald-700">${isUSD(i) ? '$'+i.amount : '৳'+parseFloat(i.amount||0).toLocaleString()}</td>
+        <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('income','${i.id}')">${icon('edit',13)} Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_income','${i.id}')">${icon('x',13)}</button></td>
       </tr>`
     }).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No income records for this month</td></tr>';
 
     document.getElementById('exp-tbody').innerHTML = mExp.map(e => `<tr>
       <td>${e.date}</td>
       <td><b>${esc(e.description)}</b></td>
-      <td><span class="text-amber-400 font-medium">${esc(e.project_tag) || '—'}</span></td>
-      <td><span class="badge bg-gray-900">${esc(activeCats[e.category]||e.category)}</span>${isTransfer(e) ? ' <span class="badge bg-blue-950 text-blue-400" title="খরচের টোটালে গোনা হয় না — কার্ডের বিল শোধ">Transfer</span>' : ''}</td>
-      <td><span class="text-xs text-amber-500">${esc(e.payment_method)}</span></td>
-      <td style="text-align:right" class="amount text-red-400">৳${parseFloat(e.amount||0).toLocaleString()}</td>
-      <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('expense','${e.id}')">✍️ Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_expenses','${e.id}')">✕</button></td>
+      <td><span class="text-amber-700 font-medium">${esc(e.project_tag) || '—'}</span></td>
+      <td><span class="badge bg-slate-100">${esc(activeCats[e.category]||e.category)}</span>${isTransfer(e) ? ' <span class="badge bg-blue-100 text-blue-700" title="খরচের টোটালে গোনা হয় না — কার্ডের বিল শোধ">Transfer</span>' : ''}</td>
+      <td><span class="text-xs text-amber-700">${esc(e.payment_method)}</span></td>
+      <td style="text-align:right" class="amount text-red-700">৳${parseFloat(e.amount||0).toLocaleString()}</td>
+      <td style="text-align:center; display:flex; gap:4px; justify-content:center"><button class="btn-e" onclick="openEditModal('expense','${e.id}')">${icon('edit',13)} Edit</button><button class="btn-d" onclick="deleteMasterRecord('hub_expenses','${e.id}')">${icon('x',13)}</button></td>
     </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:#475569">No expense records for this month</td></tr>';
 
     renderBreakdown(mExpSpend, activeCats, getAmtBDT);
@@ -1117,14 +1165,14 @@
         <tr>
           <td>${d.date}</td>
           <td><b>${esc(d.person_name)}</b></td>
-          <td><span class="badge ${d.debt_type==='Receivable'?'bg-emerald-950 text-emerald-400':'bg-red-950 text-red-400'}">${esc(d.debt_type)}</span></td>
+          <td><span class="badge ${d.debt_type==='Receivable'?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-700'}">${esc(d.debt_type)}</span></td>
           <td class="amount">${sym}${parseFloat(d.total_amount||0).toLocaleString()}</td>
-          <td class="amount text-right font-bold ${d.debt_type==='Receivable'?'text-emerald-400':'text-amber-400'}">${sym}${parseFloat(d.remaining_amount||0).toLocaleString()}</td>
-          <td><span class="badge bg-slate-900">${esc(d.currency)} Matrix</span></td>
+          <td class="amount text-right font-bold ${d.debt_type==='Receivable'?'text-emerald-700':'text-amber-700'}">${sym}${parseFloat(d.remaining_amount||0).toLocaleString()}</td>
+          <td><span class="badge bg-slate-100">${esc(d.currency)} Matrix</span></td>
           <td style="text-align:center; display:flex; gap:4px; justify-content:center">
             <input type="number" id="pay-amt-${d.id}" placeholder="${sym}" style="width:50px;padding:2px!important" />
             <button class="btn-p" style="padding:4px 6px;font-size:12px" onclick="processRepayment('${d.id}')">Pay</button>
-            <button class="btn-d" style="padding:4px 6px;font-size:12px" onclick="deleteMasterRecord('hub_debts','${d.id}')">✕</button>
+            <button class="btn-d" style="padding:4px 6px;font-size:12px" onclick="deleteMasterRecord('hub_debts','${d.id}')">${icon('x',13)}</button>
           </td>
         </tr>`;
     }).join('');
@@ -1134,12 +1182,12 @@
         if(parseFloat(c.current_due || 0) > 0) {
           tbodyHTML += `
             <tr style="background: rgba(37, 99, 235, 0.04); border-left: 2px solid #2563eb;">
-              <td>📅 ${esc(c.due_date) || '—'}</td>
-              <td><b>💳 ${esc(c.card_name)}</b></td>
-              <td><span class="badge bg-blue-950 text-blue-400">CC Outstanding</span></td>
+              <td>${icon('calendar',13)} ${esc(c.due_date) || '—'}</td>
+              <td><b>${icon('card',13)} ${esc(c.card_name)}</b></td>
+              <td><span class="badge bg-blue-100 text-blue-700">CC Outstanding</span></td>
               <td class="amount">৳${parseFloat(c.total_limit||0).toLocaleString()}</td>
-              <td class="amount text-right font-bold text-red-400">৳${parseFloat(c.current_due||0).toLocaleString()}</td>
-              <td><span class="badge bg-blue-900 text-white">Credit Card</span></td>
+              <td class="amount text-right font-bold text-red-700">৳${parseFloat(c.current_due||0).toLocaleString()}</td>
+              <td><span class="badge bg-blue-600 text-white">Credit Card</span></td>
               <td style="text-align:center; color:#64748b; font-size:11px">Pay via Cards Tab</td>
             </tr>`;
         }
@@ -1162,13 +1210,13 @@
       const done = paidMonths >= totalMonths;
       return `<tr>
         <td><b>${esc(e.item_name)}</b></td>
-        <td><span class="badge bg-blue-950 text-blue-400">${esc(e.card_name)}</span></td>
-        <td style="text-align:right" class="amount text-amber-300">৳${monthly.toLocaleString()}</td>
+        <td><span class="badge bg-blue-100 text-blue-700">${esc(e.card_name)}</span></td>
+        <td style="text-align:right" class="amount text-amber-700">৳${monthly.toLocaleString()}</td>
         <td>${paidMonths}/${totalMonths} মাস</td>
-        <td style="text-align:right" class="amount ${done?'text-emerald-400':'text-red-400'}">৳${remaining.toLocaleString()}</td>
+        <td style="text-align:right" class="amount ${done?'text-emerald-700':'text-red-700'}">৳${remaining.toLocaleString()}</td>
         <td style="text-align:center; display:flex; gap:4px; justify-content:center">
-          ${done ? '<span class="badge bg-emerald-950 text-emerald-400">সম্পন্ন ✓</span>' : `<button class="btn-p" style="padding:4px 8px;font-size:12px" onclick="collectEmiInstallment('${e.id}')">এই মাসের কিস্তি</button>`}
-          <button class="btn-d" onclick="deleteMasterRecord('hub_emis','${e.id}')">✕</button>
+          ${done ? `<span class="badge bg-emerald-100 text-emerald-700">${icon('checkCircle',12)} সম্পন্ন</span>` : `<button class="btn-p" style="padding:4px 8px;font-size:12px" onclick="collectEmiInstallment('${e.id}')">এই মাসের কিস্তি</button>`}
+          <button class="btn-d" onclick="deleteMasterRecord('hub_emis','${e.id}')">${icon('x',13)}</button>
         </td>
       </tr>`;
     }).join('') || '<tr><td colspan="6" style="text-align:center; color:#475569">কোনো EMI চলমান নেই</td></tr>';
@@ -1295,21 +1343,21 @@
       const rows = g.entries.map(e => `
         <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid rgba(30,41,59,.7);font-size:12.5px">
           <span style="color:#64748b;white-space:nowrap">${e.date || ''}</span>
-          <span style="flex:1;color:#cbd5e1">${esc(e.description)}${e.project_tag ? ` <span style="color:#f59e0b;font-size:11px">· ${esc(e.project_tag)}</span>` : ''}</span>
+          <span style="flex:1;color:#334155">${esc(e.description)}${e.project_tag ? ` <span style="color:var(--warn);font-size:11px">· ${esc(e.project_tag)}</span>` : ''}</span>
           <span style="color:#64748b;font-size:11px;white-space:nowrap">${esc(e.payment_method)}</span>
-          <span class="amount text-red-400" style="white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</span>
+          <span class="amount text-red-700" style="white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</span>
         </div>`).join('');
       return `
         <details class="bd-cat" style="background:#0f172a;border-radius:10px;overflow:hidden" ${openAll ? 'open' : ''}>
           <summary style="padding:10px 12px">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-              <span style="font-size:13px;color:#cbd5e1">${esc(activeCats[cat] || cat)} <span style="color:#475569;font-size:11.5px">(${g.entries.length})</span></span>
+              <span style="font-size:13px;color:#334155">${esc(activeCats[cat] || cat)} <span style="color:#64748b;font-size:11.5px">(${g.entries.length})</span></span>
               <span style="display:flex;align-items:center;gap:10px">
                 <span style="color:#64748b;font-size:11.5px">${pct.toFixed(1)}%</span>
-                <span class="amount" style="font-weight:700;color:#f87171">৳${g.total.toLocaleString()}</span>
+                <span class="amount" style="font-weight:700;color:var(--neg)">৳${g.total.toLocaleString()}</span>
               </span>
             </div>
-            <div style="height:5px;background:#1e293b;border-radius:100px;margin-top:8px"><div style="height:100%;width:${Math.min(100, pct)}%;background:linear-gradient(90deg,#ef4444,#f87171);border-radius:100px"></div></div>
+            <div style="height:5px;background:var(--border);border-radius:100px;margin-top:8px"><div style="height:100%;width:${Math.min(100, pct)}%;background:linear-gradient(90deg,#DC2626,#F87171);border-radius:100px"></div></div>
           </summary>
           <div style="padding-bottom:4px">${rows}</div>
         </details>`;
@@ -1342,8 +1390,8 @@
 
     const list = document.getElementById('asset-statement-list');
     list.innerHTML = isRadone ?
-      `<div>⏳ Core Secure DPS (Accumulated For Radone): <b class="amount text-emerald-400">৳${radoneDpsSum.toLocaleString()}</b></div><div style="margin-top:6px">🏢 Total Office Outflow Capital: <b class="amount text-blue-400">৳${officeSum.toLocaleString()}</b></div>` :
-      `<div>🌸 Efty DPS Savings Portfolio (Accumulated For Efty): <b class="amount text-emerald-400">৳${eftyDpsSum.toLocaleString()}</b></div>`;
+      `<div>${icon('landmark',14)} Core Secure DPS (Accumulated For Radone): <b class="amount text-emerald-700">৳${radoneDpsSum.toLocaleString()}</b></div><div style="margin-top:6px">${icon('building',14)} Total Office Outflow Capital: <b class="amount text-blue-700">৳${officeSum.toLocaleString()}</b></div>` :
+      `<div>${icon('landmark',14)} Efty DPS Savings Portfolio (Accumulated For Efty): <b class="amount text-emerald-700">৳${eftyDpsSum.toLocaleString()}</b></div>`;
   }
 
   function renderAnalytics(mInc, mExp, activeCats, getAmtBDT) {
@@ -1356,7 +1404,7 @@
       if(charts.bar) { charts.bar.destroy(); charts.bar = null; }
       charts.bar = new Chart(ctxB, {
         type: 'bar',
-        data: { labels: ['Earnings', 'Expenses'], datasets: [{ data: [tInc, tExp], backgroundColor: ['#10b981', '#ef4444'], borderRadius: 6 }] },
+        data: { labels: ['Earnings', 'Expenses'], datasets: [{ data: [tInc, tExp], backgroundColor: ['#16A34A', '#DC2626'], borderRadius: 6 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
       });
     }
@@ -1368,7 +1416,7 @@
       if(charts.donut) { charts.donut.destroy(); charts.donut = null; }
       charts.donut = new Chart(ctxD, {
         type: 'doughnut',
-        data: { labels: Object.keys(cats).map(k=>activeCats[k]||k), datasets: [{ data: Object.values(cats), backgroundColor: ['#3b82f6','#f59e0b','#ec4899','#10b981','#8b5cf6','#ef4444'] }] },
+        data: { labels: Object.keys(cats).map(k=>activeCats[k]||k), datasets: [{ data: Object.values(cats), backgroundColor: ['#2563EB','#D97706','#DB2777','#16A34A','#7C3AED','#DC2626'] }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#64748b' } } } }
       });
     }
@@ -1484,7 +1532,7 @@
         <button class="btn-s" id="btn-submit">Save Card</button>`;
     } else if(modalType === 'emi') {
       if (cards.length === 0) {
-        fBody.innerHTML = `<div style="color:#f87171;font-size:13px">আগে অন্তত একটা কার্ড যোগ করুন (Credit Cards পেইজে + Add New Card), তারপর EMI প্ল্যান বানানো যাবে।</div>
+        fBody.innerHTML = `<div style="color:var(--neg);font-size:13px">আগে অন্তত একটা কার্ড যোগ করুন (Credit Cards পেইজে + Add New Card), তারপর EMI প্ল্যান বানানো যাবে।</div>
           <button class="btn-s" id="btn-submit" style="display:none"></button>`;
         return;
       }
@@ -1646,7 +1694,8 @@
   function showToast(msg, isError=false) {
     const w = document.getElementById('toast-wrap'), t = document.createElement('div');
     t.className = isError ? "toast err" : "toast";
-    t.textContent = msg;
+    t.style.display = 'flex'; t.style.alignItems = 'center'; t.style.gap = '8px';
+    t.innerHTML = `<span style="flex-shrink:0">${icon(isError ? 'xCircle' : 'checkCircle', 17)}</span><span>${esc(msg)}</span>`;
     w.appendChild(t);
     setTimeout(() => t.remove(), isError ? 5000 : 2500);
   }
