@@ -1628,23 +1628,26 @@
   function renderBreakdown(mExp, activeCats, getAmtBDT, prevTotal) {
     const isRadone = currentProfile === 'radone';
     const total = mExp.reduce((s, e) => s + getAmtBDT(e), 0);
-    document.getElementById('breakdown-total-amt').textContent = '৳' + total.toLocaleString();
-    document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(mExp, activeCats, getAmtBDT);
 
     document.getElementById('breakdown-hero-month').textContent = formatMonthLabel(selMonth);
 
-    // Office breakdown mirrors the dashboard Office Financials widget:
-    // Radone only, same OFFICE_EXP_CATS filter, entries opened by default
-    // since there are only a few office categories.
-    let officeTotal = 0;
+    // Office vs Personal are mutually exclusive here — same OFFICE_EXP_CATS
+    // filter as the dashboard/Expenses log, so a category like "Given to
+    // Office (General)" only ever shows up under Office, not both panels.
+    const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category));
+    const personalExp = mExp.filter(e => !OFFICE_EXP_CATS.includes(e.category));
+    const officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
+    const personalTotal = personalExp.reduce((s, e) => s + getAmtBDT(e), 0);
+
+    document.getElementById('breakdown-total-amt').textContent = '৳' + personalTotal.toLocaleString();
+    document.getElementById('breakdown-total-list').innerHTML = buildBreakdownHTML(personalExp, activeCats, getAmtBDT);
+
     if (isRadone) {
-      const officeExp = mExp.filter(e => OFFICE_EXP_CATS.includes(e.category));
-      officeTotal = officeExp.reduce((s, e) => s + getAmtBDT(e), 0);
       document.getElementById('breakdown-office-amt').textContent = '৳' + officeTotal.toLocaleString();
       document.getElementById('breakdown-office-list').innerHTML = buildBreakdownHTML(officeExp, activeCats, getAmtBDT);
     }
 
-    breakdownHeroData = { isRadone, total, officeTotal, personalTotal: total - officeTotal, prevTotal, sortedCats: groupByCategory(mExp, getAmtBDT), activeCats };
+    breakdownHeroData = { isRadone, total, officeTotal, personalTotal, prevTotal, sortedCats: groupByCategory(mExp, getAmtBDT), activeCats };
     renderBreakdownHero();
     applyBreakdownPanels();
   }
