@@ -651,9 +651,8 @@
       <div class="nav-link" data-sec="income">💰 ${isRadone ? 'Payment' : 'Income Log'}</div>
       <div class="nav-link" data-sec="expenses">💸 Expenses Log</div>
       <div class="nav-link" data-sec="breakdown">🧾 খরচের হিসাব</div>
-      ${isRadone ? '<div class="nav-link" data-sec="creditcard">💳 Credit Cards</div><div class="nav-link" data-sec="debts">🤝 Debts Ledger</div>' : ''}
-      <div class="nav-link" data-sec="wealth">🏦 Wealth Hub</div>
-      <div class="nav-link" data-sec="analytics">📈 Analytics</div>
+      ${isRadone ? '<div class="nav-link" data-sec="creditcard">💳 Card</div><div class="nav-link" data-sec="debts">🧾 Receivables</div><div class="nav-link" data-sec="debts">💸 Payables</div>' : ''}
+      <div class="nav-link" data-sec="wealth">🏦 Assets</div>
     `;
     // Keep the section the user was on across re-renders; Radone-only
     // sections (cards/debts) fall back to Dashboard when Efty is active.
@@ -688,23 +687,20 @@
     });
   }
 
-  // ---- Mobile nav: same 8 sections as the desktop sidebar, split into a
+  // ---- Mobile nav: same sections as the desktop sidebar, split into a
   // 4-slot bottom tab bar + a "More" sheet for the rest. Both just trigger
-  // the existing goToSec()/nav-link click flow — no new section logic. ----
+  // the existing goToSec()/nav-link click flow — no new section logic.
+  // "More" is a list of {sec,icon,label} rows rather than bare section
+  // keys because Receivables/Payables are two separate rows that both open
+  // the same sec-debts page (no data split, just two doorways to it). ----
   const NAV_LABELS = {
     dashboard: { icon: '📊', label: 'Dashboard' },
-    income: { icon: '💰', label: 'Income' },
     expenses: { icon: '💸', label: 'Expenses' },
-    breakdown: { icon: '🧾', label: 'খরচের হিসাব' },
-    creditcard: { icon: '💳', label: 'Cards' },
-    debts: { icon: '🤝', label: 'Debts Ledger' },
-    wealth: { icon: '🏦', label: 'Wealth Hub' },
-    analytics: { icon: '📈', label: 'Analytics' }
+    breakdown: { icon: '🧾', label: 'খরচের হিসাব' }
   };
 
   // Income's label follows the same Radone="Payment" / Efty="Income" split
-  // used everywhere else — resolved here since NAV_LABELS is otherwise
-  // static and shared between the bottom bar and the More sheet.
+  // used everywhere else.
   function navLabel(sec) {
     if (sec === 'income') return { icon: '💰', label: currentProfile === 'radone' ? 'Payment' : 'Income' };
     return NAV_LABELS[sec];
@@ -713,16 +709,23 @@
   function bottomNavSecs() {
     const isRadone = currentProfile === 'radone';
     // Fixed 4-item bar for everyone: Dashboard, Payment/Income, Expenses,
-    // Breakdown. Credit Cards/Debts/Wealth/Analytics live in More.
+    // Breakdown. Everything else lives in More. Analytics is dropped from
+    // navigation entirely (its section/chart code stays, just unreachable).
     const main = ['dashboard', 'income', 'expenses', 'breakdown'];
-    const all = isRadone ? ['dashboard','income','expenses','breakdown','creditcard','debts','wealth','analytics'] : ['dashboard','income','expenses','breakdown','wealth','analytics'];
-    const more = all.filter(s => !main.includes(s));
+    const more = isRadone
+      ? [
+          { sec: 'creditcard', icon: '💳', label: 'Card' },
+          { sec: 'debts', icon: '🧾', label: 'Receivables' },
+          { sec: 'debts', icon: '💸', label: 'Payables' },
+          { sec: 'wealth', icon: '🏦', label: 'Assets' }
+        ]
+      : [{ sec: 'wealth', icon: '🏦', label: 'Assets' }];
     return { main, more };
   }
 
   function renderBottomNav() {
     const { main, more } = bottomNavSecs();
-    const moreIsActive = more.includes(activeSec);
+    const moreIsActive = more.some(m => m.sec === activeSec);
     const items = main.map(sec => {
       const n = navLabel(sec);
       return `<div class="bn-item${sec === activeSec ? ' on' : ''}" data-sec="${sec}"><span class="bn-ic">${n.icon}</span><span>${n.label}</span></div>`;
@@ -736,9 +739,8 @@
 
   function renderMoreSheet() {
     const { more } = bottomNavSecs();
-    document.getElementById('more-sheet-list').innerHTML = more.map(sec => {
-      const n = navLabel(sec);
-      return `<div class="more-row${sec === activeSec ? ' on' : ''}" data-sec="${sec}"><span>${n.icon}</span><span>${n.label}</span></div>`;
+    document.getElementById('more-sheet-list').innerHTML = more.map(m => {
+      return `<div class="more-row${m.sec === activeSec ? ' on' : ''}" data-sec="${m.sec}"><span>${m.icon}</span><span>${m.label}</span></div>`;
     }).join('');
     document.querySelectorAll('#more-sheet-list .more-row').forEach(el => {
       el.addEventListener('click', () => goToSec(el.dataset.sec));
