@@ -299,24 +299,20 @@
 
   <!-- INCOME LOG SEC -->
   <div id="sec-income" class="sec">
-    <div class="glass" style="border-radius:14px;overflow:hidden">
-      <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <span style="font-weight:600" id="income-sec-title">Records</span>
-        <button class="btn-s" id="btn-add-inc-page">+ Income</button>
-      </div>
-      <div id="inc-list" style="display:flex;flex-direction:column;gap:10px;padding:14px"></div>
+    <div class="glass" style="border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-weight:600" id="income-sec-title">Records</span>
+      <button class="btn-s" id="btn-add-inc-page">+ Income</button>
     </div>
+    <div id="inc-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- EXPENSES LOG SEC -->
   <div id="sec-expenses" class="sec">
-    <div class="glass" style="border-radius:14px;overflow:hidden">
-      <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <span style="font-weight:600">Records</span>
-        <button class="btn-s" id="btn-add-exp-page">+ Expense</button>
-      </div>
-      <div id="exp-list" style="display:flex;flex-direction:column;gap:10px;padding:14px"></div>
+    <div class="glass" style="border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-weight:600">Records</span>
+      <button class="btn-s" id="btn-add-exp-page">+ Expense</button>
     </div>
+    <div id="exp-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- EXPENSE BREAKDOWN SEC -->
@@ -1406,19 +1402,19 @@
     return sorted.map(([cat, g]) => {
       const pct = grandTotal > 0 ? (g.total / grandTotal) * 100 : 0;
       const rows = g.entries.map(e => `
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid rgba(30,41,59,.7);font-size:12.5px">
-          <span style="color:#64748b;white-space:nowrap">${e.date || ''}</span>
-          <span style="flex:1;color:#334155">${esc(e.description)}${e.project_tag ? ` <span style="color:var(--warn);font-size:11px">· ${esc(e.project_tag)}</span>` : ''}</span>
-          <span style="color:#64748b;font-size:11px;white-space:nowrap">${esc(e.payment_method)}</span>
-          <span class="amount text-red-700" style="white-space:nowrap">৳${parseFloat(e.amount||0).toLocaleString()}</span>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid var(--border);font-size:12.5px">
+          <span style="color:var(--text-muted);white-space:nowrap;flex-shrink:0">${e.date || ''}</span>
+          <span style="flex:1;min-width:0;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.description)}${e.project_tag ? ` <span style="color:var(--warn);font-size:11px">· ${esc(e.project_tag)}</span>` : ''}</span>
+          <span style="color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0">${esc(e.payment_method)}</span>
+          <span class="amount text-red-700" style="white-space:nowrap;flex-shrink:0">৳${parseFloat(e.amount||0).toLocaleString()}</span>
         </div>`).join('');
       return `
-        <details class="bd-cat" style="background:#0f172a;border-radius:10px;overflow:hidden" ${openAll ? 'open' : ''}>
+        <details class="bd-cat" style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;overflow:hidden" ${openAll ? 'open' : ''}>
           <summary style="padding:10px 12px">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-              <span style="font-size:13px;color:#334155">${esc(activeCats[cat] || cat)} <span style="color:#64748b;font-size:11.5px">(${g.entries.length})</span></span>
+              <span style="font-size:13px;color:var(--text)">${esc(activeCats[cat] || cat)} <span style="color:var(--text-muted);font-size:11.5px">(${g.entries.length})</span></span>
               <span style="display:flex;align-items:center;gap:10px">
-                <span style="color:#64748b;font-size:11.5px">${pct.toFixed(1)}%</span>
+                <span style="color:var(--text-muted);font-size:11.5px">${pct.toFixed(1)}%</span>
                 <span class="amount" style="font-weight:700;color:var(--neg)">৳${g.total.toLocaleString()}</span>
               </span>
             </div>
