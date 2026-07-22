@@ -301,7 +301,7 @@
   <div id="sec-income" class="sec">
     <div class="glass" style="border-radius:14px;overflow:hidden">
       <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <span style="font-weight:600" id="income-sec-title">Daily Income Records</span>
+        <span style="font-weight:600" id="income-sec-title">Records</span>
         <button class="btn-s" id="btn-add-inc-page">+ Income</button>
       </div>
       <div id="inc-list" style="display:flex;flex-direction:column;gap:10px;padding:14px"></div>
@@ -312,8 +312,8 @@
   <div id="sec-expenses" class="sec">
     <div class="glass" style="border-radius:14px;overflow:hidden">
       <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <span style="font-weight:600">Daily Expenses Records</span>
-        <button class="btn-p" id="btn-add-exp-page">+ Expense</button>
+        <span style="font-weight:600">Records</span>
+        <button class="btn-s" id="btn-add-exp-page">+ Expense</button>
       </div>
       <div id="exp-list" style="display:flex;flex-direction:column;gap:10px;padding:14px"></div>
     </div>
@@ -323,15 +323,15 @@
   <div id="sec-breakdown" class="sec">
     <div class="glass" style="border-radius:14px;padding:20px;margin-bottom:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px">
-        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="receipt" data-icon-size="16" style="color:var(--neg)"></span>Total Expense Breakdown (This Month)</div>
+        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="receipt" data-icon-size="16" style="color:var(--neg)"></span>Personal Breakdown</div>
         <div class="amount" style="font-size:18px;font-weight:700;color:var(--neg)" id="breakdown-total-amt">৳0</div>
       </div>
       <div style="font-size:11.5px;color:#475569;margin-bottom:14px">ক্যাটাগরিতে ক্লিক করলে ভেতরের খরচগুলো দেখা যাবে</div>
       <div id="breakdown-total-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
-    <div class="glass" id="breakdown-office-panel" style="border-radius:14px;padding:20px;background:linear-gradient(135deg, rgba(37,99,235,0.1), rgba(59,130,246,0.05))">
+    <div class="glass" id="breakdown-office-panel" style="border-radius:14px;padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
-        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="building" data-icon-size="16" style="color:var(--acc)"></span>Office Expense Breakdown (This Month)</div>
+        <div style="font-size:15px;font-weight:600;color:#94a3b8;display:flex;align-items:center;gap:7px"><span data-icon="building" data-icon-size="16" style="color:var(--neg)"></span>Office Breakdown</div>
         <div class="amount" style="font-size:18px;font-weight:700;color:var(--neg)" id="breakdown-office-amt">৳0</div>
       </div>
       <div id="breakdown-office-list" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -948,7 +948,6 @@
     // just not framed as income). Efty's Kurti Paradise sales keep the
     // "Income" wording since that's a real business income stream for her.
     document.getElementById('btn-add-inc-page').textContent = isRadone ? '+ Payment' : '+ Income';
-    document.getElementById('income-sec-title').textContent = isRadone ? 'Daily Payment Records' : 'Daily Income Records';
 
     // Office/Personal Expense split + Office Payment + Assets (Radone
     // only) — plain totals, no profit/comparison math, same spirit as the
