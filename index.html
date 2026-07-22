@@ -1902,13 +1902,13 @@
       const methods = isRadone ? [...radoneBase, ...cardOptions] : eftyMethods;
       let methodSelectHTML = `<select id="f-method">${methods.map(m=>`<option value="${esc(m.value)}" ${item&&item.payment_method===m.value?'selected':''}>${esc(m.label)}</option>`).join('')}</select>`;
 
-      // Adding fresh (not editing) via the Personal/Office Expense buttons
-      // only offers that side's categories — otherwise both sets stay mixed
-      // in one dropdown regardless of which button was used. Editing an
-      // existing row always shows every category so its current one stays
-      // selectable and reclassifying it is still possible.
-      const catOptions = (isRadone && !item)
-        ? Object.fromEntries(Object.entries(cats).filter(([k]) => OFFICE_EXP_CATS.includes(k) === (expenseView === 'office')))
+      // Only offer one side's categories at a time, never both mixed
+      // together: adding fresh goes by whichever of the Personal/Office
+      // Expense buttons was used, editing goes by the row's own existing
+      // category so it never disappears from its own dropdown.
+      const wantOffice = item ? OFFICE_EXP_CATS.includes(item.category) : (expenseView === 'office');
+      const catOptions = isRadone
+        ? Object.fromEntries(Object.entries(cats).filter(([k]) => OFFICE_EXP_CATS.includes(k) === wantOffice))
         : cats;
 
       fBody.innerHTML = `
