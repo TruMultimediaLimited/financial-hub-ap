@@ -631,41 +631,41 @@
   }
 
   const RADONE_CATS = {
-    home_rent: '🏠 বাসা ভাড়া (Rent)',
-    electricity_bill: '⚡ বিদ্যুৎ বিল',
-    wifi_bill: '📶 ওয়াইফাই বিল',
-    transport: '🚌 যাতায়াত ভাড়া',
-    grocery: '🛒 বাজার খরচ',
-    wife_expense: '👸 বউয়ের খরচ',
-    parents_expense: '👴👵 আব্বু আম্মুর খরচ',
-    staff_salary: '👥 কর্মচারী',
-    radone_dps: '⏳ Radone DPS Deposit',
-    food: '🍛 Food Outside',
-    emi_installment: '📆 EMI কিস্তি',
-    cc_bill_payment: '💳 Card Bill Payment (Transfer)',
-    misc: '⚙ Misc Expenses',
-    garbage: '🗑️ ময়লার বিল',
-    security_guard: '🛡️ দারোয়ানের বেতন',
-    house_help: '🧹 বুয়ার বেতন',
-    rickshaw: '🛺 রিক্সা ভাড়া',
-    cng: '🚕 সিএনজি ভাড়া',
-    bus_fare: '🚍 বাস ভাড়া',
-    uber: '🚗 উবার ভাড়া',
-    in_laws_expense: '👨‍🦳👵 শ্বশুর-শ্বাশুড়ির খরচ',
-    dipto_expense: '🧑 দিপ্তর খরচ',
-    office_rent: '🏬 অফিস ভাড়া',
-    office_electricity: '⚡ বিদ্যুৎ_ বিল',
-    office_garbage: '🗑️ ময়লার_ বিল',
-    office_boosting: '🚀 বুস্টিং',
-    office_misc: '📦 অন্যান্য খরচ',
-    office_boy: '🧑‍💼 অফিস বয়',
-    office_rickshaw: '🛺 রিক্সা_ ভাড়া',
-    office_cng: '🚕 সিএনজি_ ভাড়া',
-    office_bus: '🚍 বাস_ ভাড়া',
-    office_uber: '🚗 উবার_ ভাড়া',
-    office_grocery: '🛍️ বাজার_ খরচ',
-    office_wifi: '📶 ওয়াইফাই_ বিল',
-    office_food: '🍛 বাহিরের খাবার'
+    home_rent: 'বাসা ভাড়া',
+    electricity_bill: 'বিদ্যুৎ বিল',
+    wifi_bill: 'ওয়াইফাই বিল',
+    transport: 'যাতায়াত ভাড়া',
+    grocery: 'বাজার খরচ',
+    wife_expense: 'বউয়ের খরচ',
+    parents_expense: 'আব্বু আম্মুর খরচ',
+    staff_salary: 'কর্মচারী',
+    radone_dps: 'ডিপিএস',
+    food: 'বাহিরের খাবার',
+    emi_installment: 'ই এম আই',
+    cc_bill_payment: 'ক্রেডিট কার্ড',
+    misc: 'অন্যান্য',
+    garbage: 'ময়লার বিল',
+    security_guard: 'দারোয়ানের বেতন',
+    house_help: 'বুয়ার বেতন',
+    rickshaw: 'রিক্সা ভাড়া',
+    cng: 'সিএনজি ভাড়া',
+    bus_fare: 'বাস ভাড়া',
+    uber: 'উবার ভাড়া',
+    in_laws_expense: 'শ্বশুর-শ্বাশুড়ির খরচ',
+    dipto_expense: 'দিপ্তর খরচ',
+    office_rent: 'অফিস ভাড়া',
+    office_electricity: 'বিদ্যুৎ_ বিল',
+    office_garbage: 'ময়লার_ বিল',
+    office_boosting: 'বুস্টিং',
+    office_misc: 'অন্যান্য খরচ',
+    office_boy: 'অফিস বয়',
+    office_rickshaw: 'রিক্সা_ ভাড়া',
+    office_cng: 'সিএনজি_ ভাড়া',
+    office_bus: 'বাস_ ভাড়া',
+    office_uber: 'উবার_ ভাড়া',
+    office_grocery: 'বাজার_ খরচ',
+    office_wifi: 'ওয়াইফাই_ বিল',
+    office_food: 'বাহিরের_ খাবার'
   };
 
   // Expense categories that count as "office spending" — shared by the
@@ -1545,6 +1545,15 @@
     return CAT_COLORS[(idx >= 0 ? idx : 0) % CAT_COLORS.length];
   }
 
+  // Category labels used to always be "<emoji> <text>" — RADONE_CATS no
+  // longer carries emoji at all, but EFTY_CATS still does, so this can't
+  // just split on the first space (a plain label's first word isn't an
+  // emoji and shouldn't end up crammed into the icon badge).
+  function splitEmojiLabel(label) {
+    const m = label.match(/^(\p{Extended_Pictographic}(?:[\p{Extended_Pictographic}‍️])*)\s*(.*)$/u);
+    return m ? { emoji: m[1], text: m[2] } : { emoji: '📦', text: label };
+  }
+
   // Same idea for the Payment log's concern (category_group), shared with
   // the concern <select> filter's options.
   const CONCERN_KEYS = ['Personal', 'Multimedia', 'Truphoto', '4R'];
@@ -1604,12 +1613,7 @@
 
     return sorted.map(([cat, g]) => {
       const c = categoryColor(cat, activeCats);
-      // Category labels are "<emoji> <text>" (see RADONE_CATS/EFTY_CATS) —
-      // split the emoji out to use as the card's icon badge.
-      const label = activeCats[cat] || cat;
-      const spaceIdx = label.indexOf(' ');
-      const catEmoji = spaceIdx > -1 ? label.slice(0, spaceIdx) : '📦';
-      const catText = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
+      const { emoji: catEmoji, text: catText } = splitEmojiLabel(activeCats[cat] || cat);
       const latestDate = g.entries.reduce((max, e) => (e.date && e.date > max ? e.date : max), g.entries[0].date || '');
       return `
         <div style="background:${c.bg};border-radius:14px;padding:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:10px;row-gap:5px">
@@ -1624,9 +1628,7 @@
 
   window.showCategoryDetail = function(catKey) {
     const cats = currentProfile === 'radone' ? RADONE_CATS : EFTY_CATS;
-    const label = cats[catKey] || catKey;
-    const spaceIdx = label.indexOf(' ');
-    const catText = spaceIdx > -1 ? label.slice(spaceIdx + 1) : label;
+    const { text: catText } = splitEmojiLabel(cats[catKey] || catKey);
     const entries = lastMExp.filter(e => (e.category || 'misc') === catKey).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     document.getElementById('category-detail-title').textContent = catText;
     document.getElementById('category-detail-list').innerHTML = entries.map(e => `
